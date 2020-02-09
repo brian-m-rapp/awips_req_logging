@@ -1,0 +1,44 @@
+Updated Files
+=============
+
+AWIPS2_Dev_Baseline
+-------------------
+edexOsgi/build.edex/edex/common.properties
+
+AWIPS2_Core_FOSS
+----------------
+lib/com.fasterxml.jackson/.classpath
+lib/org.springframework/.classpath
+
+AWIPS2_Core
+-----------
+common/com.raytheon.uf.common.dataquery/src/com/raytheon/uf/common/dataquery/requests/DbQueryRequest.java
+common/com.raytheon.uf.common.serialization.comm/src/com/raytheon/uf/common/serialization/comm/IServerRequest.java
+edex/com.raytheon.uf.edex.requestsrv/src/com/raytheon/uf/edex/requestsrv/RequestServiceExecutor.java
+
+
+
+Procedure
+=========
+1. Ensure the only unstaged files (minus some eclipse preferences files) are the ones listed above
+    cd ~/source/awips19.3.1
+    for d in *; do cd $d; echo $d; git status; echo '----------------------------------'; cd ..; done
+
+2. Perform a test run to verify expected results
+    npy AddMethodToJavaSource.py upd logString.py /home/awips/source/awips19.3.1 -t
+
+3. Run without test flag to update source files
+    npy AddMethodToJavaSource.py upd logString.py /home/awips/source/awips19.3.1
+
+4. Manually add logString to:
+    AWIPS2_Dev_Baseline/edexOsgi/com.raytheon.uf.common.registry.ebxml/src/com/raytheon/uf/common/registry/ebxml/AssociationQuery.java
+    AWIPS2_Dev_Baseline/edexOsgi/com.raytheon.uf.common.registry.ebxml/src/com/raytheon/uf/common/registry/ebxml/IdQuery.java
+    AWIPS2_Core/edex/com.raytheon.uf.edex.requestsrv/src/com/raytheon/uf/edex/requestsrv/request/ServerPrivilegedRequestHandler.java
+
+5. Perform a clean build from eclipse and verify no errors found
+
+6. Perform a deploy-install from eclipse to build jar files in /awips2/edex/lib
+
+7. Create tarball
+    npy archive_files.py ~/updated_jarfiles.json
+
