@@ -1,4 +1,4 @@
-package org.dilireum.awips.reflection;
+package org.dilireum.awips.jaxb.bookstore;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;

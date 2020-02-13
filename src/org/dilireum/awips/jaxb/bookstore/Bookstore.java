@@ -1,4 +1,4 @@
-package org.dilireum.awips.reflection;
+package org.dilireum.awips.jaxb.bookstore;
 
 import java.util.ArrayList;
 
