@@ -38,8 +38,6 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
-import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
-import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
 import com.raytheon.uf.common.time.util.TimeUtil;
 
 /**
@@ -76,7 +74,6 @@ import com.raytheon.uf.common.time.util.TimeUtil;
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlRootElement(name = "requestConstraint")
 @XmlType(name = "requestConstraint")
-@DynamicSerialize
 public class RequestConstraint implements Cloneable {
 
     public static final RequestConstraint WILDCARD;
@@ -113,11 +110,9 @@ public class RequestConstraint implements Cloneable {
             ConstraintType.EQUALS, ConstraintType.IN);
 
     @XmlAttribute
-    @DynamicSerializeElement
     protected ConstraintType constraintType;
 
     @XmlAttribute
-    @DynamicSerializeElement
     protected String constraintValue;
 
     protected transient Map<Class<?>, Object> asMap = new HashMap<>(2);

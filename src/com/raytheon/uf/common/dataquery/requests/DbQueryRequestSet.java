@@ -19,8 +19,6 @@
  **/
 package com.raytheon.uf.common.dataquery.requests;
 
-import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
-import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
 import com.raytheon.uf.common.serialization.comm.IServerRequest;
 
 /**
@@ -43,10 +41,8 @@ import com.raytheon.uf.common.serialization.comm.IServerRequest;
  * @version 1.0
  * @see DbQueryRequest
  */
-@DynamicSerialize
 public class DbQueryRequestSet implements IServerRequest {
 
-    @DynamicSerializeElement
     private DbQueryRequest[] queries;
 
     public DbQueryRequest[] getQueries() {

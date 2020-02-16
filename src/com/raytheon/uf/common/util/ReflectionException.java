@@ -17,29 +17,42 @@
  * See the AWIPS II Master Rights File ("Master Rights File.pdf") for
  * further licensing information.
  **/
-package com.raytheon.uf.common.serialization.comm;
-
+package com.raytheon.uf.common.util;
 
 /**
- * Request class to be used by objects being serialized by Thrift, if you don't
- * know what you are being serialized by then use this because only in special
- * cases is jaxb used
+ * A wrapper runtime exception for problems that occur with reflection.
  * 
  * <pre>
  * 
  * SOFTWARE HISTORY
+ * 
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
- * Aug 3, 2009            mschenke     Initial creation
+ * Jul 10, 2012 634        djohnson     Initial creation
  * 
  * </pre>
  * 
- * @author mschenke
+ * @author djohnson
  * @version 1.0
  */
 
-public interface IServerRequest {
+public class ReflectionException extends RuntimeException {
 
-	String logString();		// Create JSON string containing request parameters
+    private static final long serialVersionUID = -6622684607744047392L;
 
+    public ReflectionException() {
+        super();
+    }
+
+    public ReflectionException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public ReflectionException(String message) {
+        super(message);
+    }
+
+    public ReflectionException(Throwable cause) {
+        super(cause);
+    }
 }

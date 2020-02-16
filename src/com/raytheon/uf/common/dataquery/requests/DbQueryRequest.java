@@ -24,8 +24,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
-import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
 import com.raytheon.uf.common.serialization.comm.IServerRequest;
 
 /**
@@ -44,20 +42,15 @@ import com.raytheon.uf.common.serialization.comm.IServerRequest;
  * @author mschenke
  * @version 1.0
  */
-@DynamicSerialize
 public class DbQueryRequest implements IServerRequest {
 
-    @DynamicSerialize
     public static enum OrderMode {
         ASC, DESC;
     }
 
-    @DynamicSerialize
     public static class OrderBy {
-        @DynamicSerializeElement
         public String field;
 
-        @DynamicSerializeElement
         public OrderMode mode = OrderMode.ASC;
 
         /**
@@ -92,12 +85,9 @@ public class DbQueryRequest implements IServerRequest {
 
     }
 
-    @DynamicSerialize
     public static class RequestField {
-        @DynamicSerializeElement
         public String field;
 
-        @DynamicSerializeElement
         public boolean max = false;
 
         public String getField() {
@@ -127,10 +117,8 @@ public class DbQueryRequest implements IServerRequest {
         }
     }
 
-    @DynamicSerializeElement
     private String database = "metadata";
 
-    @DynamicSerializeElement
     private List<RequestField> fields = new ArrayList<RequestField>();
 
     /**
@@ -139,19 +127,14 @@ public class DbQueryRequest implements IServerRequest {
      */
     private transient Map<String, RequestField> uniqueFields = null;
 
-    @DynamicSerializeElement
     private boolean distinct = false;
 
-    @DynamicSerializeElement
     private Map<String, RequestConstraint> constraints = new HashMap<String, RequestConstraint>();
 
-    @DynamicSerializeElement
     private String entityClass;
 
-    @DynamicSerializeElement
     private OrderBy orderBy;
 
-    @DynamicSerializeElement
     private Integer limit;
 
     public DbQueryRequest() {

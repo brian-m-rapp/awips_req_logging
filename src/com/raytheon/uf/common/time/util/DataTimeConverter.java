@@ -17,29 +17,36 @@
  * See the AWIPS II Master Rights File ("Master Rights File.pdf") for
  * further licensing information.
  **/
-package com.raytheon.uf.common.serialization.comm;
 
+package com.raytheon.uf.common.time.util;
+
+import org.apache.commons.beanutils.Converter;
+
+import com.raytheon.uf.common.time.DataTime;
 
 /**
- * Request class to be used by objects being serialized by Thrift, if you don't
- * know what you are being serialized by then use this because only in special
- * cases is jaxb used
+ * Custom converter implementation for converting DataTime objects from Strings
  * 
  * <pre>
- * 
  * SOFTWARE HISTORY
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
- * Aug 3, 2009            mschenke     Initial creation
- * 
+ *                         bphillip    Initial Creation
  * </pre>
  * 
- * @author mschenke
+ * @author bphillip
  * @version 1.0
  */
+public class DataTimeConverter implements Converter {
 
-public interface IServerRequest {
-
-	String logString();		// Create JSON string containing request parameters
+    @SuppressWarnings("unchecked")
+    @Override
+    public Object convert(Class clazz, Object value) {
+        if (value instanceof String) {
+            String val = (String) value;
+            return new DataTime(val);
+        }
+        return null;
+    }
 
 }
