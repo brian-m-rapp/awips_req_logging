@@ -28,6 +28,7 @@ public class RequestsMain {
 				System.out.format("(%s - disabled)\n", cls);
 				continue;
 			}
+
 			Map <String, ClassAttribute> attrs = reqMap.get(cls).getAttributeMap();
 			for (String attr : attrs.keySet()) {
 				System.out.format("\tAttribute name: %s\n", attrs.get(attr).getName());
