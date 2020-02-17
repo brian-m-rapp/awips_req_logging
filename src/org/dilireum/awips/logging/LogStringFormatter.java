@@ -75,7 +75,6 @@ public class LogStringFormatter {
 	public String getLogString(IServerRequest request) {
 		Class<?> reqClass = request.getClass();
 		String className = reqClass.getName();
-		/*
 		if (!requestClasses.containsKey(className)) {
 			requestClasses.put(className,  makeClassFieldMap(reqClass));
 		}
@@ -100,10 +99,10 @@ public class LogStringFormatter {
 		}
 
 		System.out.println();
-		*/
+
 		try {
-			//return mapper.writeValueAsString(new RequestWrapper(request));
-			return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(new RequestWrapper(request));
+			return mapper.writeValueAsString(new RequestWrapper(request));
+			//return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(new RequestWrapper(request));
 			//return String.format("{\"reqClass\":\"%s\", \"request\":%s}", 
 			//		className, mapper.writeValueAsString(request));
 			//return String.format("{\"reqClass\":\"%s\", \"request\":%s}", 
