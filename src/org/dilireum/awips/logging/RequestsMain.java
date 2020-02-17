@@ -8,7 +8,6 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
 public class RequestsMain {
-
 	
 	public static void main(String[] args)  throws JAXBException {
 		JAXBContext jaxbContext = JAXBContext.newInstance(Requests.class);
@@ -23,7 +22,12 @@ public class RequestsMain {
 
 		Map<String, Request> reqMap = requests.getRequestMap();
 		for (String cls : reqMap.keySet()) {
-			System.out.println(cls);
+			if (reqMap.get(cls).isEnabled()) {
+				System.out.println(cls);
+			} else {
+				System.out.format("(%s - disabled)\n", cls);
+				continue;
+			}
 			Map <String, ClassAttribute> attrs = reqMap.get(cls).getAttributeMap();
 			for (String attr : attrs.keySet()) {
 				System.out.format("\tAttribute name: %s\n", attrs.get(attr).getName());

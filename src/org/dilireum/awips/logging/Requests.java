@@ -9,6 +9,11 @@ import javax.xml.bind.annotation.*;
 @XmlRootElement(name="requests")
 @XmlAccessorType(XmlAccessType.NONE)
 public class Requests {
+	/* 
+	 * Request classes are loaded from the XML file into this ArrayList.  
+	 * Call requestsToMap() to copy the requests to requestMap HashMap.
+	 * The HashMap provides efficient access by request class name.
+	 */
 	@XmlElement(name="request")
 	private List<Request> requests = new ArrayList<>();
 
@@ -29,7 +34,9 @@ public class Requests {
 	public void requestsToMap() {
 		requestMap = new HashMap<String, Request>();
 		for (Request req : requests) {
-			requestMap.put(req.getClassName(), req);
+			if (!requestMap.containsKey(req.getClassName())) {
+				requestMap.put(req.getClassName(), req);
+			}
 		}
 	}
 

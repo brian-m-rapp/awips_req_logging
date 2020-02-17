@@ -8,12 +8,21 @@ import javax.xml.bind.annotation.*;
 
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlRootElement(name="request")
-@XmlType(propOrder = {"className", "attributes"})
+@XmlType(propOrder = {"className", "enabled", "attributes"})
 public class Request {
 	@XmlElement(name="class")
 	private String className;
-	@XmlElementWrapper(name = "attributes")
-	@XmlElement(name="attribute")
+
+	@XmlElement
+	private boolean enabled = true;	// Logging for each request type defaults to true
+
+	/* 
+	 * Attributes are loaded from the XML file into this ArrayList.  
+	 * Call attributesToMap() to copy the attributes to attributeMap HashMap.
+	 * The HashMap provides efficient access by attribute name.
+	 */
+	@XmlElementWrapper(name="attributes", required=false)
+	@XmlElement(name="attribute", required=false)
 	private List<ClassAttribute> attributes = new ArrayList<>();
 
 	private Map<String, ClassAttribute> attributeMap = new HashMap<>();
@@ -24,6 +33,14 @@ public class Request {
 
 	public void setClassName(String className) {
 		this.className = className;
+	}
+
+	public boolean isEnabled() {
+		return enabled;
+	}
+
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
 	}
 
 	public Map<String, ClassAttribute> getAttributeMap() {
@@ -45,7 +62,9 @@ public class Request {
 	public void attributesToMap() {
 		attributeMap = new HashMap<String, ClassAttribute>();
 		for (ClassAttribute attr : attributes) {
-			attributeMap.put(attr.getName(), attr);
+			if (!attributeMap.containsKey(attr.getName())) {
+				attributeMap.put(attr.getName(), attr);
+			}
 		}
 	}
 
