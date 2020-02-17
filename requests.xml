@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='UTF-8'?> 
+<requests>
+    <request>
+        <class>com.raytheon.uf.common.dataquery.requests.QlServerRequest</class>
+        <attributes>
+            <attribute>
+                <name>query</name>
+                <maxlength>80</maxlength>
+            </attribute>
+            <attribute>
+                <name>lang</name>
+                <enabled>false</enabled>
+            </attribute>
+        </attributes>
+    </request>
+</requests>

@@ -12,7 +12,7 @@ import javax.xml.bind.Unmarshaller;
 
 public class BookstoreMain {
 
-    private static final String BOOKSTORE_XML = "/home/awips/bookstore-jaxb.xml";
+    private static final String BOOKSTORE_XML = "~/bookstore-jaxb.xml".replaceFirst("^~", System.getProperty("user.home"));
 
     public static void main(String[] args) throws JAXBException, IOException {
 
