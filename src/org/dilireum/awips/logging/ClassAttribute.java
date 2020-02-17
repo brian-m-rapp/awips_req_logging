@@ -9,7 +9,7 @@ public class ClassAttribute {
 	@XmlElement 
 	private String name;
 
-	@XmlElement
+	@XmlElement(required=false)
 	private boolean enabled = true;
 
 	@XmlElement(name="maxlength", required=false)
