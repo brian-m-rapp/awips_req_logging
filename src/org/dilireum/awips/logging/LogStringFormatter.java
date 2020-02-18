@@ -17,7 +17,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
-
+import com.raytheon.uf.common.message.WsId;
 import com.raytheon.uf.common.serialization.comm.IServerRequest;
 
 public class LogStringFormatter {
@@ -47,32 +47,30 @@ public class LogStringFormatter {
 	}
 
 	private class RequestWrapper {
+		private String wsid;
 		private String reqClass;
 		private IServerRequest request;
+
+		public RequestWrapper(String wsid, IServerRequest request) {
+			this.wsid = wsid;
+			this.reqClass = request.getClass().getName();
+			this.request = request;
+		}
+
+		public String getWsid() {
+			return wsid;
+		}
 
 		public String getReqClass() {
 			return reqClass;
 		}
 
-		public void setReqClass(String reqClass) {
-			this.reqClass = reqClass;
-		}
-
 		public IServerRequest getRequest() {
 			return request;
 		}
-
-		public void setRequest(IServerRequest request) {
-			this.request = request;
-		}
-
-		public RequestWrapper(IServerRequest request) {
-			this.reqClass = request.getClass().getName();
-			this.request = request;
-		}
 	}
 
-	public String getLogString(IServerRequest request) {
+	public String getLogString(String wsid, IServerRequest request) {
 		Class<?> reqClass = request.getClass();
 		String className = reqClass.getName();
 		if (!requestClasses.containsKey(className)) {
@@ -101,7 +99,7 @@ public class LogStringFormatter {
 		System.out.println();
 
 		try {
-			return mapper.writeValueAsString(new RequestWrapper(request));
+			return mapper.writeValueAsString(new RequestWrapper(wsid, request));
 			//return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(new RequestWrapper(request));
 			//return String.format("{\"reqClass\":\"%s\", \"request\":%s}", 
 			//		className, mapper.writeValueAsString(request));
