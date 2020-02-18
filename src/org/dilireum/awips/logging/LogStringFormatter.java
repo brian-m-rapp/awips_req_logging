@@ -17,7 +17,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
-import com.raytheon.uf.common.message.WsId;
 import com.raytheon.uf.common.serialization.comm.IServerRequest;
 
 public class LogStringFormatter {
@@ -101,11 +100,6 @@ public class LogStringFormatter {
 		try {
 			return mapper.writeValueAsString(new RequestWrapper(wsid, request));
 			//return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(new RequestWrapper(request));
-			//return String.format("{\"reqClass\":\"%s\", \"request\":%s}", 
-			//		className, mapper.writeValueAsString(request));
-			//return String.format("{\"reqClass\":\"%s\", \"request\":%s}", 
-			//		className, mapper.writerWithDefaultPrettyPrinter().writeValueAsString(request));
-			//System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(request));
 		} catch (JsonProcessingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
