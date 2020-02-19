@@ -1,44 +1,16 @@
 <?xml version='1.0' encoding='UTF-8'?> 
-<requests>
-    <request>
-        <class>com.raytheon.uf.common.dataquery.requests.QlServerRequest</class>
+<requests maxFieldStringLength="160">
+    <request class="com.raytheon.uf.common.dataquery.requests.QlServerRequest">
         <attributes>
-            <attribute>
-                <name>query</name>
-                <maxlength>80</maxlength>
-            </attribute>
-            <attribute>
-                <name>lang</name>
-                <enabled>false</enabled>
-            </attribute>
+            <attribute name="query" maxlength="80"/>
+            <attribute name="lang" enabled="false"/>
         </attributes>
     </request>
-    <request>
-        <class>com.raytheon.uf.common.localization.msgs.UtilityRequestMessage</class>
-        <enabled>false</enabled>
-    </request>
-    <request>
-        <class>com.raytheon.uf.common.dataplugin.grid.request.GetGridTreeRequest</class>
-        <enabled>false</enabled>
-    </request>
-    <request>
-        <class>com.raytheon.uf.common.alertviz.InitializeAlertMonitorsRequest</class>
-        <enabled>false</enabled>
-    </request>
-    <request>
-        <class>com.raytheon.uf.common.localization.msgs.GetServersRequest</class>
-        <enabled>false</enabled>
-    </request>
-    <request>
-        <class>com.raytheon.uf.common.dataplugin.request.GetPluginRecordMapRequest</class>
-        <enabled>false</enabled>
-    </request>
-    <request>
-        <class>com.raytheon.uf.common.auth.req.CheckAuthorizationRequest</class>
-        <enabled>false</enabled>
-    </request>
-    <request>
-        <class>com.raytheon.uf.common.menus.MenuCreationRequest</class>
-        <enabled>false</enabled>
-    </request>
+    <request class="com.raytheon.uf.common.localization.msgs.UtilityRequestMessage" enabled="false"/>
+    <request class="com.raytheon.uf.common.dataplugin.grid.request.GetGridTreeRequest" enabled="false"/>
+    <request class="com.raytheon.uf.common.alertviz.InitializeAlertMonitorsRequest" enabled="false"/>
+    <request class="com.raytheon.uf.common.localization.msgs.GetServersRequest" enabled="false"/>
+    <request class="com.raytheon.uf.common.dataplugin.request.GetPluginRecordMapRequest" enabled="false"/>
+    <request class="com.raytheon.uf.common.auth.req.CheckAuthorizationRequest" enabled="false"/>
+    <request class="com.raytheon.uf.common.menus.MenuCreationRequest" enabled="false"/>
 </requests>

@@ -14,6 +14,9 @@ public class Requests {
 	 * Call requestsToMap() to copy the requests to requestMap HashMap.
 	 * The HashMap provides efficient access by request class name.
 	 */
+	@XmlAttribute
+	private int maxFieldStringLength;
+
 	@XmlElement(name="request")
 	private List<Request> requests = new ArrayList<>();
 
@@ -35,6 +38,7 @@ public class Requests {
 		requestMap = new HashMap<String, Request>();
 		for (Request req : requests) {
 			if (!requestMap.containsKey(req.getClassName())) {
+				req.attributesToMap();
 				requestMap.put(req.getClassName(), req);
 			}
 		}

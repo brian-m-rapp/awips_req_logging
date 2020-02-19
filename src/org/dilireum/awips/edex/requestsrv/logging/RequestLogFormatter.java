@@ -1,31 +1,44 @@
 package org.dilireum.awips.edex.requestsrv.logging;
 
-import java.util.Map; 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.ArrayList;
-
-import java.io.IOException;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.InvocationTargetException;
-
-import com.raytheon.uf.common.util.ReflectionUtil;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.raytheon.uf.common.serialization.comm.IServerRequest;
+import com.raytheon.uf.edex.requestsrv.RequestServiceExecutor;
+
+import java.io.File;
+import java.util.Map; 
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.ArrayList;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class RequestLogFormatter {
 
-	private static final RequestLogFormatter instance = new RequestLogFormatter();
+    private static final Logger logger = LoggerFactory
+            .getLogger(RequestServiceExecutor.class);
 
-	private Map<String, HashMap<String, Field>> requestClasses = new HashMap<>();
+    private static final RequestLogFormatter instance = new RequestLogFormatter();
 
 	private RequestLogFormatter() {
-		// Instantiate the request output structure from the XML config file
+		Requests requests;
+		try {
+			requests = (Requests) JAXBContext.newInstance(Requests.class)
+									.createUnmarshaller()
+									.unmarshal(new File("requests.xml"));
+		} catch (JAXBException e) {
+			e.printStackTrace();
+			filterMap = new HashMap<String, Request>();
+			return;
+		}
+
+        requests.requestsToMap();
+        filterMap = requests.getRequestMap();
 	}
 
 	private final ObjectMapper mapper = new ObjectMapper();
@@ -37,16 +50,8 @@ public class RequestLogFormatter {
 	final private int defaultMaxStringLength = 160;
 	private int maxStringLength = defaultMaxStringLength;
 
-	private HashMap<String, Field> makeClassFieldMap(Class<?> clazz) {
-		HashMap<String, Field> classFields = new HashMap<>();
-		List<Field> fields = ReflectionUtil.getAllFields(clazz);
-		for (Field field : fields) {
-			classFields.put(field.getName(), field);
-		}
-
-		return classFields;
-	}
-
+	Map<String, Request> filterMap;
+	
 	@JsonPropertyOrder({"wsid", "reqClass", "request"})
 	private class RequestWrapper {
 		private String wsid;
@@ -73,6 +78,34 @@ public class RequestLogFormatter {
 		public IServerRequest getRequest() {
 			return request;
 		}
+	}
+
+	@SuppressWarnings("unchecked")
+	public void applyFilters(Map<String, Object> jsonMap) {
+		Map<String, Object> requestMap = (Map<String, Object>) jsonMap.get("request");
+		String reqClass = (String) jsonMap.get("reqClass");
+		if (filterMap.containsKey(reqClass)) {
+			Request reqFilter = (Request) filterMap.get(jsonMap.get("reqClass"));
+			Map<String, ClassAttribute> attrFilters = reqFilter.getAttributeMap();
+			for (String field : requestMap.keySet()) {
+				if (attrFilters.containsKey(field)) {
+					ClassAttribute attr = attrFilters.get(field);
+					if (!attr.isEnabled()) {
+						requestMap.remove(field);
+						continue;
+					}
+
+					if (attr.getMaxLength() > 0) {
+						String strField = (String) requestMap.get(field);
+						if (strField.length() > attr.getMaxLength()) {
+							requestMap.put(field, strField.substring(0, attr.getMaxLength()) + "...");
+						}
+					}
+				}
+			}
+		}
+
+		truncateLongStrings(requestMap);
 	}
 
 	public void truncateLongStrings(Map<String, Object> jsonMap) {
@@ -110,53 +143,33 @@ public class RequestLogFormatter {
 		}
 	}
 
-	public String getLogString(String wsid, IServerRequest request) {
-		Class<?> reqClass = request.getClass();
-		String className = reqClass.getName();
-		if (!requestClasses.containsKey(className)) {
-			requestClasses.put(className,  makeClassFieldMap(reqClass));
-			/*
-			for (String cls : requestClasses.keySet()) {
-				System.out.format("Request class: %s\n", cls);
-				HashMap<String, Field> fldMap = requestClasses.get(cls);
-				for (String fld : fldMap.keySet()) {
-					Field f = fldMap.get(fld);
-					if ((f.getModifiers() & Modifier.TRANSIENT) == 0) {
-						try {
-							Object obj = ReflectionUtil.getFieldValue(request, f);
-							if (obj != null)
-								System.out.format("\tField name: %s  type: %s  value: %s\n", 
-									f.getName(), f.getType().getName(), obj.toString());
-						} catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
-							System.out.format("Exception %s calling getFieldValue for %s\n", e, f.getName());
-						}
-					}
-				}
-				System.out.println("---------------------\n");
-			}
-			*/
-		}
-
-		System.out.println();
-
-		Map<String, Field> classFieldMap = requestClasses.get(className);
-
+	public void logRequest(String wsid, IServerRequest request) {
+		String jstring;
 		try {
-			String jstring = mapper.writeValueAsString(new RequestWrapper(wsid, request));
-			Map<String, Object> jsonMap = mapper.readValue(jstring, new TypeReference<Map<String, Object>>(){});
-			// Traverse map and truncate any strings longer than the maximum desired length
-			@SuppressWarnings("unchecked")
-			Map<String, Object> requestMap = (Map<String, Object>) jsonMap.get("request");
-			truncateLongStrings(requestMap);
-			jstring = mapper.writeValueAsString(jsonMap);
-			return jstring;
-			//return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(new RequestWrapper(request));
+			jstring = mapper.writeValueAsString(new RequestWrapper(wsid, request));
 		} catch (JsonProcessingException e) {
 			e.printStackTrace();
-		} catch (IOException e) {
+			return;
+		}
+
+		Map<String, Object> jsonMap;
+		try {
+			jsonMap = mapper.readValue(jstring, new TypeReference<Map<String, Object>>(){});
+		} catch (Exception e) {
+			e.printStackTrace();
+			return;
+		}
+
+		String clsStr = (String) jsonMap.get("reqClass");
+		if (filterMap.containsKey(clsStr) && !filterMap.get(clsStr).isEnabled()) {
+			return;
+		}
+
+		applyFilters(jsonMap);
+		try {
+			logger.info(mapper.writeValueAsString(jsonMap));
+		} catch (JsonProcessingException e) {
 			e.printStackTrace();
 		}
-		//System.out.format("Request class: %s", reqClass.getName());
-		return "{}";
 	}
 }

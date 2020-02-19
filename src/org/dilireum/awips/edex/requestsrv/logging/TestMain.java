@@ -1,11 +1,10 @@
 package org.dilireum.awips.edex.requestsrv.logging;
 
-import org.dilireum.awips.edex.requestsrv.logging.RequestLogFormatter;
-
 import com.raytheon.uf.common.dataquery.requests.DbQueryRequest;
 import com.raytheon.uf.common.dataquery.requests.DbQueryRequestSet;
 import com.raytheon.uf.common.dataquery.requests.RequestConstraint;
 import com.raytheon.uf.common.dataquery.requests.RequestConstraint.ConstraintType;
+import org.dilireum.awips.edex.requestsrv.logging.RequestLogFormatter;
 
 public class TestMain {
 
@@ -35,10 +34,9 @@ public class TestMain {
 		requests[0] = createDbRequest("East");
 		requests[1] = createDbRequest("West");
 
-		System.out.println(formatter.getLogString(wsid, requests[0]));
+		formatter.logRequest(wsid, requests[0]);
 
 		reqSet.setQueries(requests);
-		System.out.println(formatter.getLogString(wsid, reqSet));
+		formatter.logRequest(wsid, reqSet);
 	}
-
 }

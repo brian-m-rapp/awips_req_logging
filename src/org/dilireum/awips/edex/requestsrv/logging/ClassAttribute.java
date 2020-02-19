@@ -4,15 +4,14 @@ import javax.xml.bind.annotation.*;
 
 @XmlRootElement(name="attribute")
 @XmlAccessorType(XmlAccessType.NONE)
-@XmlType(propOrder = {"name", "enabled", "maxLength"})
 public class ClassAttribute {
-	@XmlElement 
+	@XmlAttribute 
 	private String name;
 
-	@XmlElement(required=false)
+	@XmlAttribute
 	private boolean enabled = true;
 
-	@XmlElement(name="maxlength", required=false)
+	@XmlAttribute(name="maxlength")
 	private int maxLength = -1;
 
 	public String getName() {

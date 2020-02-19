@@ -14,10 +14,6 @@ public class RequestsMain {
 		Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
 		Requests requests = (Requests) jaxbUnmarshaller.unmarshal(new File("requests.xml"));
 
-		for (Request req : requests.getRequests()) {
-			req.attributesToMap();
-		}
-
 		requests.requestsToMap();
 
 		Map<String, Request> reqMap = requests.getRequestMap();

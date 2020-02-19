@@ -8,12 +8,11 @@ import javax.xml.bind.annotation.*;
 
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlRootElement(name="request")
-@XmlType(propOrder = {"className", "enabled", "attributes"})
 public class Request {
-	@XmlElement(name="class")
+	@XmlAttribute(name="class")
 	private String className;
 
-	@XmlElement
+	@XmlAttribute
 	private boolean enabled = true;	// Logging for each request type defaults to true
 
 	/* 
