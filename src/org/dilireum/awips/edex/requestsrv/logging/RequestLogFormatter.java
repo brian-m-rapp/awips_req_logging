@@ -162,10 +162,12 @@ public class RequestLogFormatter {
 
 		String clsStr = (String) jsonMap.get("reqClass");
 		if (filterMap.containsKey(clsStr) && !filterMap.get(clsStr).isEnabled()) {
+			logger.debug(String.format("Filtered request %s", clsStr));
 			return;
 		}
 
 		applyFilters(jsonMap);
+
 		try {
 			logger.info(mapper.writeValueAsString(jsonMap));
 		} catch (JsonProcessingException e) {
