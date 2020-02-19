@@ -1,15 +1,15 @@
-package org.dilireum.awips.logging;
+package org.dilireum.awips.edex.requestsrv.logging;
+
+import org.dilireum.awips.edex.requestsrv.logging.RequestLogFormatter;
 
 import com.raytheon.uf.common.dataquery.requests.DbQueryRequest;
-import com.raytheon.uf.common.serialization.comm.IServerRequest;
+import com.raytheon.uf.common.dataquery.requests.DbQueryRequestSet;
 import com.raytheon.uf.common.dataquery.requests.RequestConstraint;
 import com.raytheon.uf.common.dataquery.requests.RequestConstraint.ConstraintType;
 
-import org.dilireum.awips.logging.LogStringFormatter;
-
 public class TestMain {
 
-	public static DbQueryRequest createDbRequest() {
+	public static DbQueryRequest createDbRequest(String satellite) {
 		DbQueryRequest request = new DbQueryRequest();
 
 		request.setEntityClass(request.getClass());
@@ -18,7 +18,7 @@ public class TestMain {
 		request.addRequestField("coverage.gid", false);
 		request.setOrderByField("dataTime");
 
-		request.addConstraint("sectorID", new RequestConstraint("East CONUS", ConstraintType.EQUALS));
+		request.addConstraint("sectorID", new RequestConstraint(String.format("%s CONUS", satellite), ConstraintType.EQUALS));
 		request.addConstraint("pluginName", new RequestConstraint("satellite", ConstraintType.EQUALS));
 		request.addConstraint("physicalElement", new RequestConstraint("satDif11u13uIR", ConstraintType.IN));
 		request.addConstraint("creatingEntity", new RequestConstraint("GOES%", ConstraintType.LIKE));
@@ -26,12 +26,19 @@ public class TestMain {
 	}
 
 	public static void main(String[] args) {
-		LogStringFormatter formatter = LogStringFormatter.getInstance();
+		String wsid = "16777343:awips:CAVE:8213:1";
+		DbQueryRequestSet reqSet = new DbQueryRequestSet();
+		DbQueryRequest[] requests = new DbQueryRequest[2];
 
-		IServerRequest request = createDbRequest();
+		RequestLogFormatter formatter = RequestLogFormatter.getInstance();
 
-		String logString = formatter.getLogString(request);
-		System.out.println(logString);
+		requests[0] = createDbRequest("East");
+		requests[1] = createDbRequest("West");
+
+		System.out.println(formatter.getLogString(wsid, requests[0]));
+
+		reqSet.setQueries(requests);
+		System.out.println(formatter.getLogString(wsid, reqSet));
 	}
 
 }

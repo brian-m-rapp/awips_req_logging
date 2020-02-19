@@ -1,4 +1,4 @@
-package org.dilireum.awips.logging;
+package org.dilireum.awips.edex.requestsrv.logging;
 
 import javax.xml.bind.annotation.*;
 
