@@ -19,8 +19,6 @@
  **/
 package com.raytheon.uf.edex.requestsrv;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.raytheon.uf.common.auth.AuthException;
 import com.raytheon.uf.common.auth.req.AbstractPrivilegedRequest;
 import com.raytheon.uf.common.auth.user.IUser;
@@ -36,6 +34,7 @@ import com.raytheon.uf.edex.auth.AuthManagerFactory;
 import com.raytheon.uf.edex.auth.req.AbstractPrivilegedRequestHandler;
 import com.raytheon.uf.edex.auth.resp.AuthorizationResponse;
 import com.raytheon.uf.edex.auth.resp.ResponseFactory;
+import com.raytheon.uf.edex.requestsrv.logging.*;
 
 /**
  * Class that handles the execution of {@link IServerRequest}s. Contains the
@@ -64,9 +63,6 @@ import com.raytheon.uf.edex.auth.resp.ResponseFactory;
 
 public class RequestServiceExecutor {
 
-    private static final Logger logger = LoggerFactory
-            .getLogger(RequestServiceExecutor.class);
-
     private static final transient IUFStatusHandler statusHandler = UFStatus
             .getHandler(RequestServiceExecutor.class);
 
@@ -77,13 +73,15 @@ public class RequestServiceExecutor {
     }
 
     private final HandlerRegistry registry;
+    private final RequestLogFormatter reqLogFormatter;
 
     public RequestServiceExecutor() {
-        this(HandlerRegistry.getInstance());
+        this(HandlerRegistry.getInstance(), RequestLogFormatter.getInstance());
     }
 
-    public RequestServiceExecutor(HandlerRegistry registry) {
+    public RequestServiceExecutor(HandlerRegistry registry, RequestLogFormatter formatter) {
         this.registry = registry;
+        this.reqLogFormatter = formatter;
     }
 
     /**
@@ -119,15 +117,6 @@ public class RequestServiceExecutor {
 
             String id = request.getClass().getCanonicalName();
             IRequestHandler handler = registry.getRequestHandler(id);
-            String reqStr;
-            try {
-            	reqStr = request.logString();
-            } catch (Exception | Error e) {
-            	logger.debug(e.getMessage());
-            	reqStr = request.toString();
-            }
-
-            logger.info(String.format("Processing Request source: %s request: %s", wsidPString, reqStr));
 
             if (request instanceof AbstractPrivilegedRequest) {
                 // Not the default role, attempt to cast handler and request
@@ -172,8 +161,10 @@ public class RequestServiceExecutor {
                 }
             }
 
-            return handler.handleRequest(request);
+            Object returnObject = handler.handleRequest(request);
+            reqLogFormatter.logRequest(wsidPString, request);
 
+            return returnObject;
         } finally {
             if (subjectSet) {
                 AuthManagerFactory.getInstance().getPermissionsManager()
