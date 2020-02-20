@@ -11,9 +11,9 @@ import javax.xml.bind.Marshaller;
 public class RequestMarshall {
 
 	public static void main(String[] args) throws JAXBException {
-		Map<String, Request> map = new HashMap<>();
+		Map<String, RequestFilter> map = new HashMap<>();
 
-		Request req1 = new Request();
+		RequestFilter req1 = new RequestFilter();
 		req1.setClassName("com.raytheon.uf.common.dataquery.requests.QlServerRequest");
 		ClassAttribute attr = new ClassAttribute();
 		attr.setName("query");
@@ -28,10 +28,10 @@ public class RequestMarshall {
 
 		map.put(req1.getClassName(), req1);
 
-		Requests requestMap = new Requests();
-		requestMap.setRequestMap(map);
+		RequestFilters requestMap = new RequestFilters();
+		requestMap.setRequestFiltersMap(map);
 
-		JAXBContext jaxbContext = JAXBContext.newInstance(Requests.class);
+		JAXBContext jaxbContext = JAXBContext.newInstance(RequestFilters.class);
 		Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
 		jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 		jaxbMarshaller.marshal(requestMap, System.out);

@@ -10,13 +10,13 @@ import javax.xml.bind.Unmarshaller;
 public class RequestsMain {
 	
 	public static void main(String[] args)  throws JAXBException {
-		JAXBContext jaxbContext = JAXBContext.newInstance(Requests.class);
+		JAXBContext jaxbContext = JAXBContext.newInstance(RequestFilters.class);
 		Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
-		Requests requests = (Requests) jaxbUnmarshaller.unmarshal(new File("requests.xml"));
+		RequestFilters requestFilters = (RequestFilters) jaxbUnmarshaller.unmarshal(new File("requests.xml"));
 
-		requests.requestsToMap();
+		requestFilters.requestFiltersToMap();
 
-		Map<String, Request> reqMap = requests.getRequestMap();
+		Map<String, RequestFilter> reqMap = requestFilters.getRequestFiltersMap();
 		for (String cls : reqMap.keySet()) {
 			if (reqMap.get(cls).isEnabled()) {
 				System.out.println(cls);

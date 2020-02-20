@@ -1,4 +1,4 @@
-package org.dilireum.awips.edex.requestsrv.logging;
+package com.raytheon.uf.edex.requestsrv.logging;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -8,7 +8,7 @@ import javax.xml.bind.annotation.*;
 
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlRootElement(name="request")
-public class Request {
+public class RequestFilter {
 	@XmlAttribute(name="class")
 	private String className;
 

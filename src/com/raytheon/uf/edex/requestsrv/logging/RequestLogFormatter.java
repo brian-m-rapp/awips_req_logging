@@ -1,4 +1,4 @@
-package org.dilireum.awips.edex.requestsrv.logging;
+package com.raytheon.uf.edex.requestsrv.logging;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.core.JsonProcessingException;

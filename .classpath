@@ -2,12 +2,12 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
-	<classpathentry kind="lib" path="/com.fasterxml.jackson/jackson-annotations-2.9.9.jar" sourcepath="/com.fasterxml.jackson/jackson-annotations-2.9.9-sources.jar"/>
-	<classpathentry kind="lib" path="/com.fasterxml.jackson/jackson-core-2.9.9.jar" sourcepath="/com.fasterxml.jackson/jackson-core-2.9.9-sources.jar"/>
-	<classpathentry kind="lib" path="/com.fasterxml.jackson/jackson-databind-2.9.9.jar" sourcepath="/com.fasterxml.jackson/jackson-databind-2.9.9-sources.jar"/>
-	<classpathentry kind="lib" path="/com.fasterxml.jackson/jackson-module-jaxb-annotations-2.9.9.jar" sourcepath="/com.fasterxml.jackson/jackson-module-jaxb-annotations-2.9.9-sources.jar"/>
 	<classpathentry kind="lib" path="/org.slf4j/slf4j-api-1.7.25.jar" sourcepath="/org.slf4j/slf4j-api-1.7.25-sources.jar"/>
 	<classpathentry kind="lib" path="/ch.qos.logback/logback-classic-1.2.0.jar" sourcepath="/ch.qos.logback/logback-classic-1.2.0-sources.jar"/>
 	<classpathentry kind="lib" path="/ch.qos.logback/logback-core-1.2.0.jar" sourcepath="/ch.qos.logback/logback-core-1.2.0-sources.jar"/>
+	<classpathentry kind="lib" path="/com.fasterxml.jackson/jackson-annotations-2.10.1.jar" sourcepath="/com.fasterxml.jackson/jackson-annotations-2.10.1-sources.jar"/>
+	<classpathentry kind="lib" path="/com.fasterxml.jackson/jackson-core-2.10.1.jar" sourcepath="/com.fasterxml.jackson/jackson-core-2.10.1-sources.jar"/>
+	<classpathentry kind="lib" path="/com.fasterxml.jackson/jackson-databind-2.10.1.jar" sourcepath="/com.fasterxml.jackson/jackson-databind-2.10.1-sources.jar"/>
+	<classpathentry kind="lib" path="/com.fasterxml.jackson/jackson-module-jaxb-annotations-2.10.1.jar" sourcepath="/com.fasterxml.jackson/jackson-module-jaxb-annotations-2.10.1-sources.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
