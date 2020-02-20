@@ -8,6 +8,7 @@ import com.raytheon.uf.common.serialization.comm.IServerRequest;
 import com.raytheon.uf.edex.requestsrv.RequestServiceExecutor;
 
 import java.io.File;
+import java.util.Iterator;
 import java.util.Map; 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -39,6 +40,7 @@ public class RequestLogFormatter {
 
         requests.requestsToMap();
         filterMap = requests.getRequestMap();
+        maxStringLength = requests.getMaxFieldStringLength();
 	}
 
 	private final ObjectMapper mapper = new ObjectMapper();
@@ -47,11 +49,10 @@ public class RequestLogFormatter {
 		return instance;
 	}
 
-	final private int defaultMaxStringLength = 160;
-	private int maxStringLength = defaultMaxStringLength;
-
 	Map<String, Request> filterMap;
-	
+
+	private int maxStringLength;
+
 	@JsonPropertyOrder({"wsid", "reqClass", "request"})
 	private class RequestWrapper {
 		private String wsid;
@@ -87,18 +88,22 @@ public class RequestLogFormatter {
 		if (filterMap.containsKey(reqClass)) {
 			Request reqFilter = (Request) filterMap.get(jsonMap.get("reqClass"));
 			Map<String, ClassAttribute> attrFilters = reqFilter.getAttributeMap();
-			for (String field : requestMap.keySet()) {
-				if (attrFilters.containsKey(field)) {
-					ClassAttribute attr = attrFilters.get(field);
+			Iterator<Map.Entry<String, Object>> iterator = requestMap.entrySet().iterator();
+			while (iterator.hasNext()) {
+				Map.Entry<String, Object> field = iterator.next();
+				String fieldKey = field.getKey();
+				if (attrFilters.containsKey(fieldKey)) {
+					ClassAttribute attr = attrFilters.get(fieldKey);
 					if (!attr.isEnabled()) {
-						requestMap.remove(field);
+						iterator.remove();
 						continue;
 					}
 
 					if (attr.getMaxLength() > 0) {
-						String strField = (String) requestMap.get(field);
-						if (strField.length() > attr.getMaxLength()) {
-							requestMap.put(field, strField.substring(0, attr.getMaxLength()) + "...");
+						String fieldValue = (String) field.getValue();
+						if (fieldValue.length() > attr.getMaxLength()) {
+							field.setValue(fieldValue.substring(0, attr.getMaxLength()) + "...");
+							//requestMap.put(fieldKey, fieldValue.substring(0, attr.getMaxLength()) + "...");
 						}
 					}
 				}

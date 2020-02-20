@@ -9,18 +9,28 @@ import javax.xml.bind.annotation.*;
 @XmlRootElement(name="requests")
 @XmlAccessorType(XmlAccessType.NONE)
 public class Requests {
+	final private int defaultMaxStringLength = 160;
+
+	@XmlAttribute
+	private int maxFieldStringLength = defaultMaxStringLength;
+
 	/* 
 	 * Request classes are loaded from the XML file into this ArrayList.  
 	 * Call requestsToMap() to copy the requests to requestMap HashMap.
 	 * The HashMap provides efficient access by request class name.
 	 */
-	@XmlAttribute
-	private int maxFieldStringLength;
-
 	@XmlElement(name="request")
 	private List<Request> requests = new ArrayList<>();
 
 	private Map<String, Request> requestMap = new HashMap<>();
+
+	public int getMaxFieldStringLength() {
+		return maxFieldStringLength;
+	}
+
+	public void setMaxFieldStringLength(int maxFieldStringLength) {
+		this.maxFieldStringLength = maxFieldStringLength;
+	}
 
 	public List<Request> getRequests() {
 		return requests;
