@@ -118,7 +118,7 @@ public class RequestLogFormatter {
 		for (String key : jsonMap.keySet()) {
 			Object obj = jsonMap.get(key);
 			if (obj instanceof String) {
-				if (((String) obj).length() > maxStringLength) {
+				if ((maxStringLength > 0) && ((String) obj).length() > maxStringLength) {
 					String nstr = (String) obj;
 					jsonMap.put(key, nstr.substring(0, maxStringLength) + "...");
 				}
@@ -133,7 +133,7 @@ public class RequestLogFormatter {
 						@SuppressWarnings("unchecked")
 						List<String> strArrayList = (ArrayList<String>) objs;
 						for (int i = 0; i < strArrayList.size(); i++) {
-							if (strArrayList.get(i).length() > maxStringLength) {
+							if ((maxStringLength > 0) && (strArrayList.get(i).length() > maxStringLength)) {
 								strArrayList.set(i, strArrayList.get(i).substring(0, maxStringLength) + "...");
 							}
 						}
