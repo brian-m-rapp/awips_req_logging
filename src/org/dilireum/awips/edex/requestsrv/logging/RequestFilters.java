@@ -9,10 +9,8 @@ import javax.xml.bind.annotation.*;
 @XmlRootElement(name="requests")
 @XmlAccessorType(XmlAccessType.NONE)
 public class RequestFilters {
-	final private int defaultMaxStringLength = 160;
-
 	@XmlAttribute
-	private int maxFieldStringLength = defaultMaxStringLength;
+	private int maxFieldStringLength = 0;
 
 	/* 
 	 * RequestFilter classes are loaded from the XML file into this ArrayList.  

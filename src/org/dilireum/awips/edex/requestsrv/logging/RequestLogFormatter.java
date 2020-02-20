@@ -5,7 +5,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.raytheon.uf.common.serialization.comm.IServerRequest;
-
 import java.io.File;
 import java.util.Iterator;
 import java.util.Map; 
@@ -20,6 +19,8 @@ import org.slf4j.LoggerFactory;
 
 public class RequestLogFormatter {
 
+	final private int defaultMaxStringLength = 160;
+
     private static final Logger logger = LoggerFactory
             .getLogger(RequestLogFormatter.class);
 
@@ -30,10 +31,11 @@ public class RequestLogFormatter {
 		try {
 			requestFilters = (RequestFilters) JAXBContext.newInstance(RequestFilters.class)
 									.createUnmarshaller()
-									.unmarshal(new File("requests.xml"));
+									.unmarshal(new File("requests1.xml"));
 		} catch (JAXBException e) {
 			e.printStackTrace();
 			filterMap = new HashMap<String, RequestFilter>();
+			maxStringLength = defaultMaxStringLength;
 			return;
 		}
 
