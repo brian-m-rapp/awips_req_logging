@@ -5,7 +5,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.raytheon.uf.common.serialization.comm.IServerRequest;
-
 import java.io.File;
 import java.util.Iterator;
 import java.util.Map; 
@@ -18,22 +17,28 @@ import javax.xml.bind.JAXBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class RequestLogFormatter {
+public class RequestLogger {
 
-    private static final Logger logger = LoggerFactory
-            .getLogger(RequestLogFormatter.class);
+	private static final int DEFAULT_MAX_STRING_LENGTH = 160;
 
-    private static final RequestLogFormatter instance = new RequestLogFormatter();
+    private static final Logger logger = LoggerFactory.getLogger(RequestLogger.class);
 
-	private RequestLogFormatter() {
+    private static final RequestLogger instance = new RequestLogger();
+
+	private final ObjectMapper mapper = new ObjectMapper();
+
+	Map<String, RequestFilter> filterMap = new HashMap<String, RequestFilter>();
+
+	private int maxStringLength = DEFAULT_MAX_STRING_LENGTH;
+
+	private RequestLogger() {
 		RequestFilters requestFilters;
 		try {
 			requestFilters = (RequestFilters) JAXBContext.newInstance(RequestFilters.class)
-									.createUnmarshaller()
-									.unmarshal(new File("requests.xml"));
+														.createUnmarshaller()
+														.unmarshal(new File("requests.xml"));
 		} catch (JAXBException e) {
 			e.printStackTrace();
-			filterMap = new HashMap<String, RequestFilter>();
 			return;
 		}
 
@@ -42,15 +47,9 @@ public class RequestLogFormatter {
         maxStringLength = requestFilters.getMaxFieldStringLength();
 	}
 
-	private final ObjectMapper mapper = new ObjectMapper();
-
-	public static RequestLogFormatter getInstance() {
+	public static RequestLogger getInstance() {
 		return instance;
 	}
-
-	Map<String, RequestFilter> filterMap;
-
-	private int maxStringLength;
 
 	@JsonPropertyOrder({"wsid", "reqClass", "request"})
 	private class RequestWrapper {
@@ -102,7 +101,6 @@ public class RequestLogFormatter {
 						String fieldValue = (String) field.getValue();
 						if (fieldValue.length() > attr.getMaxLength()) {
 							field.setValue(fieldValue.substring(0, attr.getMaxLength()) + "...");
-							//requestMap.put(fieldKey, fieldValue.substring(0, attr.getMaxLength()) + "...");
 						}
 					}
 				}
@@ -116,7 +114,7 @@ public class RequestLogFormatter {
 		for (String key : jsonMap.keySet()) {
 			Object obj = jsonMap.get(key);
 			if (obj instanceof String) {
-				if (((String) obj).length() > maxStringLength) {
+				if ((maxStringLength > 0) && ((String) obj).length() > maxStringLength) {
 					String nstr = (String) obj;
 					jsonMap.put(key, nstr.substring(0, maxStringLength) + "...");
 				}
@@ -131,7 +129,7 @@ public class RequestLogFormatter {
 						@SuppressWarnings("unchecked")
 						List<String> strArrayList = (ArrayList<String>) objs;
 						for (int i = 0; i < strArrayList.size(); i++) {
-							if (strArrayList.get(i).length() > maxStringLength) {
+							if ((maxStringLength > 0) && (strArrayList.get(i).length() > maxStringLength)) {
 								strArrayList.set(i, strArrayList.get(i).substring(0, maxStringLength) + "...");
 							}
 						}

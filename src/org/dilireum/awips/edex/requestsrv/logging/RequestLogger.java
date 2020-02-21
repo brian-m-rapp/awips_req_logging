@@ -17,25 +17,28 @@ import javax.xml.bind.JAXBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class RequestLogFormatter {
+public class RequestLogger {
 
-	final private int defaultMaxStringLength = 160;
+	private static final int DEFAULT_MAX_STRING_LENGTH = 160;
 
-    private static final Logger logger = LoggerFactory
-            .getLogger(RequestLogFormatter.class);
+    private static final Logger logger = LoggerFactory.getLogger(RequestLogger.class);
 
-    private static final RequestLogFormatter instance = new RequestLogFormatter();
+    private static final RequestLogger instance = new RequestLogger();
 
-	private RequestLogFormatter() {
+	private final ObjectMapper mapper = new ObjectMapper();
+
+	Map<String, RequestFilter> filterMap = new HashMap<String, RequestFilter>();
+
+	private int maxStringLength = DEFAULT_MAX_STRING_LENGTH;
+
+	private RequestLogger() {
 		RequestFilters requestFilters;
 		try {
 			requestFilters = (RequestFilters) JAXBContext.newInstance(RequestFilters.class)
-									.createUnmarshaller()
-									.unmarshal(new File("requests1.xml"));
+														.createUnmarshaller()
+														.unmarshal(new File("requests.xml"));
 		} catch (JAXBException e) {
 			e.printStackTrace();
-			filterMap = new HashMap<String, RequestFilter>();
-			maxStringLength = defaultMaxStringLength;
 			return;
 		}
 
@@ -44,15 +47,9 @@ public class RequestLogFormatter {
         maxStringLength = requestFilters.getMaxFieldStringLength();
 	}
 
-	private final ObjectMapper mapper = new ObjectMapper();
-
-	public static RequestLogFormatter getInstance() {
+	public static RequestLogger getInstance() {
 		return instance;
 	}
-
-	Map<String, RequestFilter> filterMap;
-
-	private int maxStringLength;
 
 	@JsonPropertyOrder({"wsid", "reqClass", "request"})
 	private class RequestWrapper {
@@ -104,7 +101,6 @@ public class RequestLogFormatter {
 						String fieldValue = (String) field.getValue();
 						if (fieldValue.length() > attr.getMaxLength()) {
 							field.setValue(fieldValue.substring(0, attr.getMaxLength()) + "...");
-							//requestMap.put(fieldKey, fieldValue.substring(0, attr.getMaxLength()) + "...");
 						}
 					}
 				}

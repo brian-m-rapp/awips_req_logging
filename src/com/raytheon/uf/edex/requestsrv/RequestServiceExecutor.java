@@ -73,15 +73,15 @@ public class RequestServiceExecutor {
     }
 
     private final HandlerRegistry registry;
-    private final RequestLogFormatter reqLogFormatter;
+    private final RequestLogger reqLogger;
 
     public RequestServiceExecutor() {
-        this(HandlerRegistry.getInstance(), RequestLogFormatter.getInstance());
+        this(HandlerRegistry.getInstance(), RequestLogger.getInstance());
     }
 
-    public RequestServiceExecutor(HandlerRegistry registry, RequestLogFormatter formatter) {
+    public RequestServiceExecutor(HandlerRegistry registry, RequestLogger reqLogger) {
         this.registry = registry;
-        this.reqLogFormatter = formatter;
+        this.reqLogger = reqLogger;
     }
 
     /**
@@ -162,7 +162,7 @@ public class RequestServiceExecutor {
             }
 
             Object returnObject = handler.handleRequest(request);
-            reqLogFormatter.logRequest(wsidPString, request);
+            reqLogger.logRequest(wsidPString, request);
 
             return returnObject;
         } finally {

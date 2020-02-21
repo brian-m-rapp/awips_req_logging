@@ -4,7 +4,7 @@ import com.raytheon.uf.common.dataquery.requests.DbQueryRequest;
 import com.raytheon.uf.common.dataquery.requests.DbQueryRequestSet;
 import com.raytheon.uf.common.dataquery.requests.RequestConstraint;
 import com.raytheon.uf.common.dataquery.requests.RequestConstraint.ConstraintType;
-import org.dilireum.awips.edex.requestsrv.logging.RequestLogFormatter;
+import org.dilireum.awips.edex.requestsrv.logging.RequestLogger;
 
 public class TestMain {
 
@@ -29,7 +29,7 @@ public class TestMain {
 		DbQueryRequestSet reqSet = new DbQueryRequestSet();
 		DbQueryRequest[] requests = new DbQueryRequest[2];
 
-		RequestLogFormatter formatter = RequestLogFormatter.getInstance();
+		RequestLogger formatter = RequestLogger.getInstance();
 
 		requests[0] = createDbRequest("East");
 		requests[1] = createDbRequest("West");
