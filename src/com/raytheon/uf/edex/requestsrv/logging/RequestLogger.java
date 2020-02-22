@@ -19,6 +19,10 @@ import org.slf4j.LoggerFactory;
 
 public class RequestLogger {
 
+	private static final String CONFIG_BASE_PATH = "/awips2/edex/data/utility/common_static/base/requestsrv/logging";
+
+	private static final String CONFIG_FILE = "request_logging.xml";
+
 	private static final int DEFAULT_MAX_STRING_LENGTH = 160;
 
     private static final Logger logger = LoggerFactory.getLogger(RequestLogger.class);
@@ -35,8 +39,9 @@ public class RequestLogger {
 		RequestFilters requestFilters;
 		try {
 			requestFilters = (RequestFilters) JAXBContext.newInstance(RequestFilters.class)
-														.createUnmarshaller()
-														.unmarshal(new File("requests.xml"));
+							.createUnmarshaller()
+							.unmarshal(new File(String.format("%s/%s", CONFIG_BASE_PATH, CONFIG_FILE)));
+
 		} catch (JAXBException e) {
 			e.printStackTrace();
 			return;
@@ -171,7 +176,7 @@ public class RequestLogger {
 		applyFilters(requestWrapperMap);
 
 		try {
-			logger.info(mapper.writeValueAsString(requestWrapperMap));
+			logger.info(String.format("Request: %s", mapper.writeValueAsString(requestWrapperMap)));
 		} catch (JsonProcessingException e) {
 			e.printStackTrace();
 		}

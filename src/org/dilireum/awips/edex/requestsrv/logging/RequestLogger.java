@@ -171,7 +171,7 @@ public class RequestLogger {
 		applyFilters(requestWrapperMap);
 
 		try {
-			logger.info(mapper.writeValueAsString(requestWrapperMap));
+			logger.info(String.format("Request: ", mapper.writeValueAsString(requestWrapperMap)));
 		} catch (JsonProcessingException e) {
 			e.printStackTrace();
 		}
