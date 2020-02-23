@@ -4,7 +4,6 @@ import com.raytheon.uf.common.dataquery.requests.DbQueryRequest;
 import com.raytheon.uf.common.dataquery.requests.DbQueryRequestSet;
 import com.raytheon.uf.common.dataquery.requests.RequestConstraint;
 import com.raytheon.uf.common.dataquery.requests.RequestConstraint.ConstraintType;
-import org.dilireum.awips.edex.requestsrv.logging.RequestLogger;
 
 public class TestMain {
 

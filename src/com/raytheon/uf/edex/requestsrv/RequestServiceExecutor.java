@@ -161,10 +161,8 @@ public class RequestServiceExecutor {
                 }
             }
 
-            Object returnObject = handler.handleRequest(request);
             reqLogger.logRequest(wsidPString, request);
-
-            return returnObject;
+            return handler.handleRequest(request);
         } finally {
             if (subjectSet) {
                 AuthManagerFactory.getInstance().getPermissionsManager()

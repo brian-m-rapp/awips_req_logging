@@ -47,9 +47,14 @@ public class RequestLogger {
 			return;
 		}
 
-        requestFilters.requestFiltersToMap();
-        filterMap = requestFilters.getRequestFiltersMap();
-        maxStringLength = requestFilters.getMaxFieldStringLength();
+		try {
+			requestFilters.requestFiltersToMap();
+	        filterMap = requestFilters.getRequestFiltersMap();
+	        maxStringLength = requestFilters.getMaxFieldStringLength();
+		} catch (Exception e) {
+			e.printStackTrace();
+			return;
+		}
 	}
 
 	public static RequestLogger getInstance() {
@@ -173,7 +178,12 @@ public class RequestLogger {
 			return;
 		}
 
-		applyFilters(requestWrapperMap);
+		try {
+			applyFilters(requestWrapperMap);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return;
+		}
 
 		try {
 			logger.info(String.format("Request: %s", mapper.writeValueAsString(requestWrapperMap)));
