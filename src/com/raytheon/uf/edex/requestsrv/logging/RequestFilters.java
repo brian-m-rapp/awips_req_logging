@@ -47,10 +47,8 @@ public class RequestFilters {
 	public void requestFiltersToMap() {
 		requestFiltersMap = new HashMap<String, RequestFilter>();
 		for (RequestFilter req : requestFilters) {
-			if (!requestFiltersMap.containsKey(req.getClassName())) {
-				req.attributesToMap();
-				requestFiltersMap.put(req.getClassName(), req);
-			}
+			req.attributesToMap();
+			requestFiltersMap.put(req.getClassName(), req);
 		}
 	}
 

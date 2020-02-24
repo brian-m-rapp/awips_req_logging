@@ -61,9 +61,7 @@ public class RequestFilter {
 	public void attributesToMap() {
 		attributeMap = new HashMap<String, ClassAttribute>();
 		for (ClassAttribute attr : attributes) {
-			if (!attributeMap.containsKey(attr.getName())) {
-				attributeMap.put(attr.getName(), attr);
-			}
+			attributeMap.put(attr.getName(), attr);
 		}
 	}
 
