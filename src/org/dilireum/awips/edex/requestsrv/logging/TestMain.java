@@ -29,14 +29,14 @@ public class TestMain {
 		DbQueryRequestSet reqSet = new DbQueryRequestSet();
 		DbQueryRequest[] requests = new DbQueryRequest[2];
 
-		RequestLogger formatter = RequestLogger.getInstance();
+		RequestLogger logger = RequestLogger.getInstance();
 
 		requests[0] = createDbRequest("East");
 		requests[1] = createDbRequest("West");
 
-		formatter.logRequest(wsid, requests[0]);
+		logger.logRequest(wsid, requests[0]);
 
 		reqSet.setQueries(requests);
-		formatter.logRequest(wsid, reqSet);
+		logger.logRequest(wsid, reqSet);
 	}
 }

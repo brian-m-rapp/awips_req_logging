@@ -5,17 +5,17 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.raytheon.uf.common.serialization.comm.IServerRequest;
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
+
 import java.io.File;
 import java.util.Iterator;
 import java.util.Map; 
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.ArrayList;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class RequestLogger {
 
@@ -25,17 +25,20 @@ public class RequestLogger {
 
 	private static final int DEFAULT_MAX_STRING_LENGTH = 160;
 
-    private static final Logger logger = LoggerFactory.getLogger(RequestLogger.class);
+    private static final IUFStatusHandler requestLog = UFStatus.getNamedHandler("ThriftSrvRequestLogger");
 
     private static final RequestLogger instance = new RequestLogger();
 
 	private final ObjectMapper mapper = new ObjectMapper();
 
-	Map<String, RequestFilter> filterMap = new HashMap<String, RequestFilter>();
+	private Map<String, RequestFilter> filterMap = new HashMap<>();
 
 	private int maxStringLength = DEFAULT_MAX_STRING_LENGTH;
 
 	private RequestLogger() {
+		/*
+		 * See com.raytheon.uf.common.site.SiteMap.readFiles() to see how to accomplish localization override.
+		 */
 		RequestFilters requestFilters;
 		try {
 			requestFilters = (RequestFilters) JAXBContext.newInstance(RequestFilters.class)
@@ -128,7 +131,7 @@ public class RequestLogger {
 					String nstr = (String) obj;
 					jsonMap.put(key, nstr.substring(0, maxStringLength) + "...");
 				}
-			} else if (obj instanceof LinkedHashMap) {
+			} else if (obj instanceof Map) {
 				@SuppressWarnings("unchecked")
 				Map<String, Object> mapObj = (Map<String, Object>) obj;
 				truncateLongStrings(mapObj);
@@ -143,7 +146,7 @@ public class RequestLogger {
 								strArrayList.set(i, strArrayList.get(i).substring(0, maxStringLength) + "...");
 							}
 						}
-					} else if (objs.get(0) instanceof LinkedHashMap) {
+					} else if (objs.get(0) instanceof Map) {
 						@SuppressWarnings("unchecked")
 						List<Map<String, Object>> mapArrayList = (ArrayList<Map<String, Object>>) obj;
 						for (int i = 0; i < mapArrayList.size(); i++) {
@@ -156,38 +159,21 @@ public class RequestLogger {
 	}
 
 	public void logRequest(String wsid, IServerRequest request) {
-		String clsStr = request.getClass().getName();
-		if (filterMap.containsKey(clsStr) && !filterMap.get(clsStr).isEnabled()) {
-			logger.debug(String.format("Filtered request %s", clsStr));
-			return;
-		}
-
-		String jstring;
 		try {
-			jstring = mapper.writeValueAsString(new RequestWrapper(wsid, request));
-		} catch (JsonProcessingException e) {
-			e.printStackTrace();
-			return;
-		}
+			String clsStr = request.getClass().getName();
+			if (filterMap.containsKey(clsStr) && !filterMap.get(clsStr).isEnabled()) {
+				requestLog.debug(String.format("Filtered request %s", clsStr));
+				return;
+			}
 
-		Map<String, Object> requestWrapperMap;
-		try {
-			requestWrapperMap = mapper.readValue(jstring, new TypeReference<Map<String, Object>>(){});
-		} catch (Exception e) {
-			e.printStackTrace();
-			return;
-		}
+			// Create JSON string from RequestWrapper, then convert to a map of objects to simplify parsing
+			String jstring = mapper.writeValueAsString(new RequestWrapper(wsid, request));
+			Map<String, Object> requestWrapperMap = mapper.readValue(jstring, new TypeReference<Map<String, Object>>(){});
 
-		try {
 			applyFilters(requestWrapperMap);
-		} catch (Exception e) {
-			e.printStackTrace();
-			return;
-		}
 
-		try {
-			logger.info(String.format("Request: %s", mapper.writeValueAsString(requestWrapperMap)));
-		} catch (JsonProcessingException e) {
+			requestLog.info(String.format("Request: %s", mapper.writeValueAsString(requestWrapperMap)));
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}

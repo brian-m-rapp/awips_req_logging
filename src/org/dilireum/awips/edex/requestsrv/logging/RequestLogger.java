@@ -5,29 +5,29 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.raytheon.uf.common.serialization.comm.IServerRequest;
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
+
 import java.io.File;
 import java.util.Iterator;
 import java.util.Map; 
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.ArrayList;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class RequestLogger {
 
 	private static final int DEFAULT_MAX_STRING_LENGTH = 160;
 
-    private static final Logger logger = LoggerFactory.getLogger(RequestLogger.class);
+    private static final IUFStatusHandler requestLog = UFStatus.getNamedHandler("ThriftSrvRequestLogger");
 
     private static final RequestLogger instance = new RequestLogger();
 
 	private final ObjectMapper mapper = new ObjectMapper();
 
-	Map<String, RequestFilter> filterMap = new HashMap<String, RequestFilter>();
+	private Map<String, RequestFilter> filterMap = new HashMap<>();
 
 	private int maxStringLength = DEFAULT_MAX_STRING_LENGTH;
 
@@ -118,7 +118,7 @@ public class RequestLogger {
 					String nstr = (String) obj;
 					jsonMap.put(key, nstr.substring(0, maxStringLength) + "...");
 				}
-			} else if (obj instanceof LinkedHashMap) {
+			} else if (obj instanceof Map) {
 				@SuppressWarnings("unchecked")
 				Map<String, Object> mapObj = (Map<String, Object>) obj;
 				truncateLongStrings(mapObj);
@@ -133,7 +133,7 @@ public class RequestLogger {
 								strArrayList.set(i, strArrayList.get(i).substring(0, maxStringLength) + "...");
 							}
 						}
-					} else if (objs.get(0) instanceof LinkedHashMap) {
+					} else if (objs.get(0) instanceof Map) {
 						@SuppressWarnings("unchecked")
 						List<Map<String, Object>> mapArrayList = (ArrayList<Map<String, Object>>) obj;
 						for (int i = 0; i < mapArrayList.size(); i++) {
@@ -148,7 +148,7 @@ public class RequestLogger {
 	public void logRequest(String wsid, IServerRequest request) {
 		String clsStr = request.getClass().getName();
 		if (filterMap.containsKey(clsStr) && !filterMap.get(clsStr).isEnabled()) {
-			logger.debug(String.format("Filtered request %s", clsStr));
+			requestLog.debug(String.format("Filtered request %s", clsStr));
 			return;
 		}
 
@@ -171,7 +171,7 @@ public class RequestLogger {
 		applyFilters(requestWrapperMap);
 
 		try {
-			logger.info(String.format("Request: ", mapper.writeValueAsString(requestWrapperMap)));
+			requestLog.info(String.format("Request: %s", mapper.writeValueAsString(requestWrapperMap)));
 		} catch (JsonProcessingException e) {
 			e.printStackTrace();
 		}
