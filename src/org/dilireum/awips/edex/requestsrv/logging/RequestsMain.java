@@ -2,6 +2,7 @@ package org.dilireum.awips.edex.requestsrv.logging;
 
 import java.io.File;
 import java.util.Map;
+import java.util.HashMap;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -13,10 +14,9 @@ public class RequestsMain {
 		JAXBContext jaxbContext = JAXBContext.newInstance(RequestFilters.class);
 		Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
 		RequestFilters requestFilters = (RequestFilters) jaxbUnmarshaller.unmarshal(new File("requests.xml"));
+		Map<String, RequestFilter> reqMap = new HashMap<>();
+		requestFilters.requestFiltersToMap(reqMap);
 
-		requestFilters.requestFiltersToMap();
-
-		Map<String, RequestFilter> reqMap = requestFilters.getRequestFiltersMap();
 		for (String cls : reqMap.keySet()) {
 			if (reqMap.get(cls).isEnabled()) {
 				System.out.println(cls);

@@ -1,7 +1,6 @@
 package com.raytheon.uf.edex.requestsrv.logging;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.raytheon.uf.common.serialization.comm.IServerRequest;
@@ -10,7 +9,7 @@ import com.raytheon.uf.common.status.UFStatus;
 
 import java.io.File;
 import java.util.Iterator;
-import java.util.Map; 
+import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
@@ -23,7 +22,7 @@ public class RequestLogger {
 
 	private static final String CONFIG_FILE = "request_logging.xml";
 
-	private static final int DEFAULT_MAX_STRING_LENGTH = 160;
+	private static final int DEFAULT_MAX_STRING_LENGTH = 80;
 
     private static final IUFStatusHandler requestLog = UFStatus.getNamedHandler("ThriftSrvRequestLogger");
 
@@ -92,7 +91,7 @@ public class RequestLogger {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
+    @SuppressWarnings("unchecked")
 	public void applyFilters(Map<String, Object> requestWrapperMap) {
 		Map<String, Object> requestMap = (Map<String, Object>) requestWrapperMap.get("request");
 		String reqClass = (String) requestWrapperMap.get("reqClass");

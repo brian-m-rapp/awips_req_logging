@@ -3,24 +3,29 @@ package org.dilireum.awips.edex.requestsrv.logging;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.HashMap;
 import javax.xml.bind.annotation.*;
 
 @XmlRootElement(name="requests")
 @XmlAccessorType(XmlAccessType.NONE)
 public class RequestFilters {
-	@XmlAttribute
-	private int maxFieldStringLength = 0;
+	final private int defaultMaxStringLength = 160;
 
-	/* 
-	 * RequestFilter classes are loaded from the XML file into this ArrayList.  
-	 * Call requestsToMap() to copy the requestFilters to requestFiltersMap HashMap.
-	 * The HashMap provides efficient access by request class name.
-	 */
+	@XmlAttribute
+	private boolean loggingEnabled = true;
+
+	@XmlAttribute
+	private int maxFieldStringLength = defaultMaxStringLength;
+
 	@XmlElement(name="request")
 	private List<RequestFilter> requestFilters = new ArrayList<>();
 
-	private Map<String, RequestFilter> requestFiltersMap = new HashMap<>();
+	public boolean isLoggingEnabled() {
+		return loggingEnabled;
+	}
+
+	public void setLoggingEnabled(boolean loggingEnabled) {
+		this.loggingEnabled = loggingEnabled;
+	}
 
 	public int getMaxFieldStringLength() {
 		return maxFieldStringLength;
@@ -34,28 +39,10 @@ public class RequestFilters {
 		return requestFilters;
 	}
 
-	public Map<String, RequestFilter> getRequestFiltersMap() {
-		return requestFiltersMap;
-	}
-
-	public void setRequestFiltersMap(Map<String, RequestFilter> requestMap) {
-		this.requestFiltersMap = requestMap;
-	}
-
-	public void requestFiltersToMap() {
-		requestFiltersMap = new HashMap<String, RequestFilter>();
+	public void requestFiltersToMap(Map<String, RequestFilter> map) {
 		for (RequestFilter req : requestFilters) {
-			if (!requestFiltersMap.containsKey(req.getClassName())) {
-				req.attributesToMap();
-				requestFiltersMap.put(req.getClassName(), req);
-			}
-		}
-	}
-
-	public void requestFiltersMapToList() {
-		requestFilters = new ArrayList<RequestFilter>();
-		for (String name : requestFiltersMap.keySet()) {
-			requestFilters.add(requestFiltersMap.get(name));
+			req.attributesToMap();
+			map.put(req.getClassName(), req);
 		}
 	}
 }

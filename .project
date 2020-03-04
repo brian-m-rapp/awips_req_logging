@@ -3,7 +3,6 @@
 	<name>awips_req_logging</name>
 	<comment></comment>
 	<projects>
-		<project>com.raytheon.uf.common.json</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

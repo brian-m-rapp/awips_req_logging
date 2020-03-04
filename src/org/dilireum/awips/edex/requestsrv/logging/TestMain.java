@@ -1,9 +1,12 @@
 package org.dilireum.awips.edex.requestsrv.logging;
 
+import com.raytheon.edex.utility.EDEXLocalizationAdapter;
 import com.raytheon.uf.common.dataquery.requests.DbQueryRequest;
 import com.raytheon.uf.common.dataquery.requests.DbQueryRequestSet;
 import com.raytheon.uf.common.dataquery.requests.RequestConstraint;
 import com.raytheon.uf.common.dataquery.requests.RequestConstraint.ConstraintType;
+import com.raytheon.uf.common.localization.PathManagerFactory;
+
 import org.dilireum.awips.edex.requestsrv.logging.RequestLogger;
 
 public class TestMain {
@@ -25,6 +28,12 @@ public class TestMain {
 	}
 
 	public static void main(String[] args) {
+		System.setProperty("edex.home", "/awips2/edex");
+		System.setProperty("aw.site.identifier", "OAX");
+		String edexHome = System.getProperty("edex.home");
+		String siteId = System.getProperty("aw.site.identifier");
+		System.out.format("edex.home: %s, aw.site.identifier: %s\n", edexHome, siteId);
+		PathManagerFactory.setAdapter(new EDEXLocalizationAdapter());
 		String wsid = "16777343:awips:CAVE:8213:1";
 		DbQueryRequestSet reqSet = new DbQueryRequestSet();
 		DbQueryRequest[] requests = new DbQueryRequest[2];

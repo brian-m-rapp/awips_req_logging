@@ -12,17 +12,21 @@ public class RequestFilters {
 	final private int defaultMaxStringLength = 160;
 
 	@XmlAttribute
+	private boolean loggingEnabled = true;
+
+	@XmlAttribute
 	private int maxFieldStringLength = defaultMaxStringLength;
 
-	/* 
-	 * RequestFilter classes are loaded from the XML file into this ArrayList.  
-	 * Call requestsToMap() to copy the requestFilters to requestFiltersMap HashMap.
-	 * The HashMap provides efficient access by request class name.
-	 */
 	@XmlElement(name="request")
 	private List<RequestFilter> requestFilters = new ArrayList<>();
 
-	private Map<String, RequestFilter> requestFiltersMap = new HashMap<>();
+	public boolean isLoggingEnabled() {
+		return loggingEnabled;
+	}
+
+	public void setLoggingEnabled(boolean loggingEnabled) {
+		this.loggingEnabled = loggingEnabled;
+	}
 
 	public int getMaxFieldStringLength() {
 		return maxFieldStringLength;
@@ -36,26 +40,13 @@ public class RequestFilters {
 		return requestFilters;
 	}
 
-	public Map<String, RequestFilter> getRequestFiltersMap() {
-		return requestFiltersMap;
-	}
-
-	public void setRequestFiltersMap(Map<String, RequestFilter> requestMap) {
-		this.requestFiltersMap = requestMap;
-	}
-
-	public void requestFiltersToMap() {
-		requestFiltersMap = new HashMap<String, RequestFilter>();
+	public Map<String, RequestFilter> requestFiltersToMap() {
+		Map<String, RequestFilter> map = new HashMap<>();
 		for (RequestFilter req : requestFilters) {
 			req.attributesToMap();
-			requestFiltersMap.put(req.getClassName(), req);
+			map.put(req.getClassName(), req);
 		}
-	}
 
-	public void requestFiltersMapToList() {
-		requestFilters = new ArrayList<RequestFilter>();
-		for (String name : requestFiltersMap.keySet()) {
-			requestFilters.add(requestFiltersMap.get(name));
-		}
+		return map;
 	}
 }
