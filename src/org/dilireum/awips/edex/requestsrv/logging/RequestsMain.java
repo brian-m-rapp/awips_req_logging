@@ -11,9 +11,9 @@ import javax.xml.bind.Unmarshaller;
 public class RequestsMain {
 	
 	public static void main(String[] args)  throws JAXBException {
-		JAXBContext jaxbContext = JAXBContext.newInstance(RequestFilters.class);
+		JAXBContext jaxbContext = JAXBContext.newInstance(RawRequestFilters.class);
 		Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
-		RequestFilters requestFilters = (RequestFilters) jaxbUnmarshaller.unmarshal(new File("requests.xml"));
+		RawRequestFilters requestFilters = (RawRequestFilters) jaxbUnmarshaller.unmarshal(new File("requests.xml"));
 		Map<String, RequestFilter> reqMap = new HashMap<>();
 		requestFilters.requestFiltersToMap(reqMap);
 

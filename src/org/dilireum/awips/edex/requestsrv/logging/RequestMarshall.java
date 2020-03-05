@@ -28,10 +28,10 @@ public class RequestMarshall {
 
 		map.put(req1.getClassName(), req1);
 
-		RequestFilters requestMap = new RequestFilters();
+		RawRequestFilters requestMap = new RawRequestFilters();
 		requestMap.setRequestFiltersMap(map);
 
-		JAXBContext jaxbContext = JAXBContext.newInstance(RequestFilters.class);
+		JAXBContext jaxbContext = JAXBContext.newInstance(RawRequestFilters.class);
 		Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
 		jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 		jaxbMarshaller.marshal(requestMap, System.out);

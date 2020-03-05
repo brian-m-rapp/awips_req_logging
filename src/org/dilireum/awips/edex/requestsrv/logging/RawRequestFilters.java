@@ -2,12 +2,11 @@ package org.dilireum.awips.edex.requestsrv.logging;
 
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Map;
 import javax.xml.bind.annotation.*;
 
 @XmlRootElement(name="requests")
 @XmlAccessorType(XmlAccessType.NONE)
-public class RequestFilters {
+public class RawRequestFilters {
 	final private int defaultMaxStringLength = 160;
 
 	@XmlAttribute
@@ -17,7 +16,7 @@ public class RequestFilters {
 	private int maxFieldStringLength = defaultMaxStringLength;
 
 	@XmlElement(name="request")
-	private List<RequestFilter> requestFilters = new ArrayList<>();
+	private List<RawRequestFilter> rawFilters = new ArrayList<>();
 
 	public boolean isLoggingEnabled() {
 		return loggingEnabled;
@@ -35,14 +34,7 @@ public class RequestFilters {
 		this.maxFieldStringLength = maxFieldStringLength;
 	}
 
-	public List<RequestFilter> getRequests() {
-		return requestFilters;
-	}
-
-	public void requestFiltersToMap(Map<String, RequestFilter> map) {
-		for (RequestFilter req : requestFilters) {
-			req.attributesToMap();
-			map.put(req.getClassName(), req);
-		}
+	public List<RawRequestFilter> getFilters() {
+		return rawFilters;
 	}
 }

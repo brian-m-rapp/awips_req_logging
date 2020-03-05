@@ -48,7 +48,7 @@ public class RequestLogger implements ILocalizationPathObserver {
 
 	private int maxStringLength = DEFAULT_MAX_STRING_LENGTH;
 
-	private boolean loggingEnabled = false;
+	private boolean loggingEnabled = false;  // If there is no configuration file, request details will not be logged
 
 	private RequestLogger() {
 		readConfigs();
@@ -93,7 +93,7 @@ public class RequestLogger implements ILocalizationPathObserver {
         Unmarshaller unmarshaller;
 
         try {
-        	unmarshaller = JAXBContext.newInstance(RequestFilters.class).createUnmarshaller();
+        	unmarshaller = JAXBContext.newInstance(RawRequestFilters.class).createUnmarshaller();
 		} catch (Exception e) {
 			e.printStackTrace();
 			return;
@@ -105,10 +105,25 @@ public class RequestLogger implements ILocalizationPathObserver {
         	File file = pathMgr.getFile(ctx, REQ_LOG_FILENAME);
         	if (file != null && file.exists()) {
         		try {
-        			RequestFilters filters = (RequestFilters) unmarshaller.unmarshal(file);
-        			filters.requestFiltersToMap(filterMap);
-        	        maxStringLength = filters.getMaxFieldStringLength();
-        	        loggingEnabled = filters.isLoggingEnabled();
+        			RawRequestFilters rawFilters = (RawRequestFilters) unmarshaller.unmarshal(file);
+        			List<RawRequestFilter> rawList = rawFilters.getFilters();
+        			for (RawRequestFilter req : rawList) {
+        				if (filterMap.containsKey(req.getClassName())) {
+        					// This is an update to an existing filter
+        					// Put each attribute from the raw filter into the request filter
+        					//RequestFilter r = filterMap.get(req.getClassName());
+        					Map<String, ClassAttribute> attrs = filterMap.get(req.getClassName())
+        															.getAttributeMap();
+        					for (ClassAttribute attr : req.getAttributes()) {
+        						attrs.put(attr.getName(), attr);
+        					}
+        				} else {
+        					// This is a new filter
+        					filterMap.put(req.getClassName(), new RequestFilter(req));
+        				}
+        			}
+        	        maxStringLength = rawFilters.getMaxFieldStringLength();
+        	        loggingEnabled = rawFilters.isLoggingEnabled();
         		} catch (Exception e) {
         			e.printStackTrace();
         		}
@@ -121,7 +136,7 @@ public class RequestLogger implements ILocalizationPathObserver {
 		Map<String, Object> requestMap = (Map<String, Object>) requestWrapperMap.get("request");
 		String reqClass = (String) requestWrapperMap.get("reqClass");
 		if (filterMap.containsKey(reqClass)) {
-			RequestFilter reqFilter = (RequestFilter) filterMap.get(requestWrapperMap.get("reqClass"));
+			RequestFilter reqFilter = filterMap.get(requestWrapperMap.get("reqClass"));
 			Map<String, ClassAttribute> attrFilters = reqFilter.getAttributeMap();
 			Iterator<Map.Entry<String, Object>> iterator = requestMap.entrySet().iterator();
 			while (iterator.hasNext()) {
@@ -220,6 +235,7 @@ public class RequestLogger implements ILocalizationPathObserver {
 
 	@Override
 	public synchronized void fileChanged(ILocalizationFile file) {
+		System.out.println("fileChanged: " + file.getPath());
 		filterMap.clear();
 		readConfigs();
 	}
