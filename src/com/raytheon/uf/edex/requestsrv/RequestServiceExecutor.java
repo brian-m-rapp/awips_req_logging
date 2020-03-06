@@ -96,7 +96,7 @@ public class RequestServiceExecutor {
     @SuppressWarnings({ "rawtypes", "unchecked" })
     public Object execute(IServerRequest request) throws Exception {
         boolean subjectSet = false;
-        String wsidPString = "<none>";
+        String wsidPString = null;
 
         try {
             if (request instanceof RequestWrapper) {

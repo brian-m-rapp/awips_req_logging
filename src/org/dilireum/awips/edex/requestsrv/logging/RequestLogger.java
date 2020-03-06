@@ -235,7 +235,6 @@ public class RequestLogger implements ILocalizationPathObserver {
 
 	@Override
 	public synchronized void fileChanged(ILocalizationFile file) {
-		System.out.println("fileChanged: " + file.getPath());
 		filterMap.clear();
 		readConfigs();
 	}

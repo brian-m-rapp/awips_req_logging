@@ -16,9 +16,9 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/com.raytheon.uf.edex.auth"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/com.raytheon.uf.common.dataquery"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/org.springframework"/>
-	<classpathentry kind="lib" path="/com.fasterxml.jackson/jackson-annotations-2.9.9.jar" sourcepath="/com.fasterxml.jackson/jackson-annotations-2.9.9-sources.jar"/>
-	<classpathentry kind="lib" path="/com.fasterxml.jackson/jackson-core-2.9.9.jar" sourcepath="/com.fasterxml.jackson/jackson-core-2.9.9-sources.jar"/>
-	<classpathentry kind="lib" path="/com.fasterxml.jackson/jackson-databind-2.9.9.jar" sourcepath="/com.fasterxml.jackson/jackson-databind-2.9.9-sources.jar"/>
-	<classpathentry kind="lib" path="/com.fasterxml.jackson/jackson-module-jaxb-annotations-2.9.9.jar" sourcepath="/com.fasterxml.jackson/jackson-module-jaxb-annotations-2.9.9-sources.jar"/>
+	<classpathentry kind="lib" path="/com.fasterxml.jackson/jackson-annotations-2.10.1.jar" sourcepath="/com.fasterxml.jackson/jackson-annotations-2.10.1-sources.jar"/>
+	<classpathentry kind="lib" path="/com.fasterxml.jackson/jackson-core-2.10.1.jar" sourcepath="/com.fasterxml.jackson/jackson-core-2.10.1-sources.jar"/>
+	<classpathentry kind="lib" path="/com.fasterxml.jackson/jackson-databind-2.10.1.jar" sourcepath="/com.fasterxml.jackson/jackson-databind-2.10.1-sources.jar"/>
+	<classpathentry kind="lib" path="/com.fasterxml.jackson/jackson-module-jaxb-annotations-2.10.1.jar" sourcepath="/com.fasterxml.jackson/jackson-module-jaxb-annotations-2.10.1-sources.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
