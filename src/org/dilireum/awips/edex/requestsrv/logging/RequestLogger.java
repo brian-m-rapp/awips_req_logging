@@ -108,8 +108,7 @@ public class RequestLogger implements ILocalizationPathObserver {
         	if (file != null && file.exists()) {
         		try {
         			RawRequestFilters rawFilters = (RawRequestFilters) unmarshaller.unmarshal(file);
-        			List<RawRequestFilter> rawList = rawFilters.getFilters();
-        			for (RawRequestFilter req : rawList) {
+        			for (RawRequestFilter req : rawFilters.getFilters()) {
         				if (filterMap.containsKey(req.getClassName())) {
         					// This is an update to an existing filter
         					// Put each attribute from the raw filter into the request filter
