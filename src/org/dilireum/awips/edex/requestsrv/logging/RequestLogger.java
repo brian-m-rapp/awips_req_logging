@@ -25,6 +25,7 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
 public class RequestLogger implements ILocalizationPathObserver {
@@ -50,8 +51,17 @@ public class RequestLogger implements ILocalizationPathObserver {
 
 	private boolean loggingEnabled = false;  // If there is no configuration file, request details will not be logged
 
+	private Unmarshaller unmarshaller;
+
 	private RequestLogger() {
-		readConfigs();
+        try {
+        	unmarshaller = JAXBContext.newInstance(RawRequestFilters.class).createUnmarshaller();
+        } catch (JAXBException e) {
+        	requestLog.error("Error creating context for RequestLogger", e);
+            throw new ExceptionInInitializerError("Error creating context for RequestLogger");
+        }
+
+        readConfigs();
 		PathManagerFactory.getPathManager().addLocalizationPathObserver(REQ_LOG_CONFIG_DIR, this);
 	}
 
@@ -90,14 +100,6 @@ public class RequestLogger implements ILocalizationPathObserver {
 	private synchronized void readConfigs() {
 		IPathManager pathMgr = PathManagerFactory.getPathManager();
         LocalizationContext[] searchOrder = pathMgr.getLocalSearchHierarchy(LocalizationType.COMMON_STATIC);
-        Unmarshaller unmarshaller;
-
-        try {
-        	unmarshaller = JAXBContext.newInstance(RawRequestFilters.class).createUnmarshaller();
-		} catch (Exception e) {
-			e.printStackTrace();
-			return;
-		}
 
         List<LocalizationContext> reverseOrder = Arrays.asList(Arrays.copyOf(searchOrder, searchOrder.length));
         Collections.reverse(reverseOrder);
@@ -111,7 +113,6 @@ public class RequestLogger implements ILocalizationPathObserver {
         				if (filterMap.containsKey(req.getClassName())) {
         					// This is an update to an existing filter
         					// Put each attribute from the raw filter into the request filter
-        					//RequestFilter r = filterMap.get(req.getClassName());
         					Map<String, ClassAttribute> attrs = filterMap.get(req.getClassName())
         															.getAttributeMap();
         					for (ClassAttribute attr : req.getAttributes()) {
