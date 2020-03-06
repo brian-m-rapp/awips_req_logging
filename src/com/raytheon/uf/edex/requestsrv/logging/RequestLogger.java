@@ -1,30 +1,58 @@
 package com.raytheon.uf.edex.requestsrv.logging;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.raytheon.uf.common.localization.ILocalizationFile;
+import com.raytheon.uf.common.localization.ILocalizationPathObserver;
+import com.raytheon.uf.common.localization.IPathManager;
+import com.raytheon.uf.common.localization.LocalizationContext;
+import com.raytheon.uf.common.localization.LocalizationContext.LocalizationType;
+import com.raytheon.uf.common.localization.LocalizationUtil;
+import com.raytheon.uf.common.localization.PathManagerFactory;
 import com.raytheon.uf.common.serialization.comm.IServerRequest;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 
 import java.io.File;
 import java.util.Iterator;
-import java.util.Map;
+import java.util.Map; 
 import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
 
-public class RequestLogger {
-
-	private static final String CONFIG_BASE_PATH = "/awips2/edex/data/utility/common_static/base/requestsrv/logging";
-
-	private static final String CONFIG_FILE = "request_logging.xml";
+/**
+ * Class for logging request ({@link IServerRequest}) details.
+ * Requests are logged as JSON strings in /awips2/edex/logs/edex-request-thriftSrv-<date>.log
+ * Maximum string length configurable, if not configured, defaults to 80 characters
+ * Implements localization override for configuration file
+ * Request logging can be disabled in 2 ways: 
+ * 1) delete request_logging.xml from all locations, or
+ * 2) set loggingEnabled="false" in the most specific instance of request_logging.xml
+ * Can remove attributes or limit their length
+ * Can disable output of requests by Java class name
+ * @author brapp
+ *
+ */
+public class RequestLogger implements ILocalizationPathObserver {
 
 	private static final int DEFAULT_MAX_STRING_LENGTH = 80;
 
-    private static final IUFStatusHandler requestLog = UFStatus.getNamedHandler("ThriftSrvRequestLogger");
+    private static final IUFStatusHandler 
+    		requestLog = UFStatus.getNamedHandler("ThriftSrvRequestLogger");
+
+    private static final String REQ_LOG_CONFIG_DIR = 
+    		LocalizationUtil.join("requestsrv", "logging");
+
+    public static final String REQ_LOG_FILENAME = 
+    		LocalizationUtil.join(REQ_LOG_CONFIG_DIR, "request_logging.xml");
 
     private static final RequestLogger instance = new RequestLogger();
 
@@ -34,29 +62,20 @@ public class RequestLogger {
 
 	private int maxStringLength = DEFAULT_MAX_STRING_LENGTH;
 
+	private boolean loggingEnabled = false;  // If there is no configuration file, request details will not be logged
+
+	private Unmarshaller unmarshaller;
+
 	private RequestLogger() {
-		/*
-		 * See com.raytheon.uf.common.site.SiteMap.readFiles() to see how to accomplish localization override.
-		 */
-		RequestFilters requestFilters;
-		try {
-			requestFilters = (RequestFilters) JAXBContext.newInstance(RequestFilters.class)
-							.createUnmarshaller()
-							.unmarshal(new File(String.format("%s/%s", CONFIG_BASE_PATH, CONFIG_FILE)));
+        try {
+        	unmarshaller = JAXBContext.newInstance(RawRequestFilters.class).createUnmarshaller();
+        } catch (JAXBException e) {
+        	requestLog.error("Error creating context for RequestLogger", e);
+            throw new ExceptionInInitializerError("Error creating context for RequestLogger");
+        }
 
-		} catch (JAXBException e) {
-			e.printStackTrace();
-			return;
-		}
-
-		try {
-			requestFilters.requestFiltersToMap();
-	        filterMap = requestFilters.getRequestFiltersMap();
-	        maxStringLength = requestFilters.getMaxFieldStringLength();
-		} catch (Exception e) {
-			e.printStackTrace();
-			return;
-		}
+        readConfigs();
+		PathManagerFactory.getPathManager().addLocalizationPathObserver(REQ_LOG_CONFIG_DIR, this);
 	}
 
 	public static RequestLogger getInstance() {
@@ -91,12 +110,46 @@ public class RequestLogger {
 		}
 	}
 
-    @SuppressWarnings("unchecked")
+	private synchronized void readConfigs() {
+		IPathManager pathMgr = PathManagerFactory.getPathManager();
+        LocalizationContext[] searchOrder = pathMgr.getLocalSearchHierarchy(LocalizationType.COMMON_STATIC);
+
+        List<LocalizationContext> reverseOrder = Arrays.asList(Arrays.copyOf(searchOrder, searchOrder.length));
+        Collections.reverse(reverseOrder);
+        for (LocalizationContext ctx : reverseOrder) {
+        	File file = pathMgr.getFile(ctx, REQ_LOG_FILENAME);
+        	if (file != null && file.exists()) {
+        		try {
+        			RawRequestFilters rawFilters = (RawRequestFilters) unmarshaller.unmarshal(file);
+        			for (RawRequestFilter req : rawFilters.getFilters()) {
+        				if (filterMap.containsKey(req.getClassName())) {
+        					// This is an update to an existing filter
+        					// Put each attribute from the raw filter into the request filter
+        					Map<String, ClassAttribute> attrs = filterMap.get(req.getClassName())
+        															.getAttributeMap();
+        					for (ClassAttribute attr : req.getAttributes()) {
+        						attrs.put(attr.getName(), attr);
+        					}
+        				} else {
+        					// This is a new filter
+        					filterMap.put(req.getClassName(), new RequestFilter(req));
+        				}
+        			}
+        	        maxStringLength = rawFilters.getMaxFieldStringLength();
+        	        loggingEnabled = rawFilters.isLoggingEnabled();
+        		} catch (Exception e) {
+        			e.printStackTrace();
+        		}
+        	}
+        }
+	}
+
+	@SuppressWarnings("unchecked")
 	public void applyFilters(Map<String, Object> requestWrapperMap) {
 		Map<String, Object> requestMap = (Map<String, Object>) requestWrapperMap.get("request");
 		String reqClass = (String) requestWrapperMap.get("reqClass");
 		if (filterMap.containsKey(reqClass)) {
-			RequestFilter reqFilter = (RequestFilter) filterMap.get(requestWrapperMap.get("reqClass"));
+			RequestFilter reqFilter = filterMap.get(requestWrapperMap.get("reqClass"));
 			Map<String, ClassAttribute> attrFilters = reqFilter.getAttributeMap();
 			Iterator<Map.Entry<String, Object>> iterator = requestMap.entrySet().iterator();
 			while (iterator.hasNext()) {
@@ -158,22 +211,48 @@ public class RequestLogger {
 	}
 
 	public void logRequest(String wsid, IServerRequest request) {
+		if (!loggingEnabled) {
+			return;
+		}
+
+		String clsStr = request.getClass().getName();
+		if (filterMap.containsKey(clsStr) && !filterMap.get(clsStr).isEnabled()) {
+			requestLog.debug(String.format("Filtered request %s", clsStr));
+			return;
+		}
+
+		String jstring;
 		try {
-			String clsStr = request.getClass().getName();
-			if (filterMap.containsKey(clsStr) && !filterMap.get(clsStr).isEnabled()) {
-				requestLog.debug(String.format("Filtered request %s", clsStr));
-				return;
-			}
+			jstring = mapper.writeValueAsString(new RequestWrapper(wsid, request));
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+			return;
+		}
 
-			// Create JSON string from RequestWrapper, then convert to a map of objects to simplify parsing
-			String jstring = mapper.writeValueAsString(new RequestWrapper(wsid, request));
-			Map<String, Object> requestWrapperMap = mapper.readValue(jstring, new TypeReference<Map<String, Object>>(){});
-
-			applyFilters(requestWrapperMap);
-
-			requestLog.info(String.format("Request: %s", mapper.writeValueAsString(requestWrapperMap)));
+		Map<String, Object> requestWrapperMap;
+		try {
+			requestWrapperMap = mapper.readValue(jstring, new TypeReference<Map<String, Object>>(){});
 		} catch (Exception e) {
 			e.printStackTrace();
+			return;
 		}
+
+		applyFilters(requestWrapperMap);
+
+		try {
+			requestLog.info(String.format("Request::: %s", mapper.writeValueAsString(requestWrapperMap)));
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public synchronized void fileChanged(ILocalizationFile file) {
+		filterMap.clear();
+		readConfigs();
+	}
+
+	public Map<String, RequestFilter> getFilterMap() {
+		return filterMap;
 	}
 }

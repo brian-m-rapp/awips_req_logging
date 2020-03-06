@@ -12,7 +12,7 @@ public class RequestMarshall {
 
 	public static void main(String[] args) throws JAXBException {
 		Map<String, RequestFilter> map = new HashMap<>();
-
+		/*
 		RequestFilter req1 = new RequestFilter();
 		req1.setClassName("com.raytheon.uf.common.dataquery.requests.QlServerRequest");
 		ClassAttribute attr = new ClassAttribute();
@@ -35,6 +35,7 @@ public class RequestMarshall {
 		Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
 		jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 		jaxbMarshaller.marshal(requestMap, System.out);
+		*/
 	}
 
 }

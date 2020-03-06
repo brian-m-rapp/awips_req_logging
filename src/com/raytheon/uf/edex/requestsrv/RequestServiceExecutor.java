@@ -117,7 +117,6 @@ public class RequestServiceExecutor {
 
             String id = request.getClass().getCanonicalName();
             IRequestHandler handler = registry.getRequestHandler(id);
-            reqLogger.logRequest(wsidPString, request);
 
             if (request instanceof AbstractPrivilegedRequest) {
                 // Not the default role, attempt to cast handler and request
@@ -161,6 +160,8 @@ public class RequestServiceExecutor {
                     throw t;
                 }
             }
+
+            reqLogger.logRequest(wsidPString, request);
 
             return handler.handleRequest(request);
         } finally {

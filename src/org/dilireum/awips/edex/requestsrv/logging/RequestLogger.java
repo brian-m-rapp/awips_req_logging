@@ -238,4 +238,8 @@ public class RequestLogger implements ILocalizationPathObserver {
 		filterMap.clear();
 		readConfigs();
 	}
+
+	public Map<String, RequestFilter> getFilterMap() {
+		return filterMap;
+	}
 }

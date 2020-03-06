@@ -1,21 +1,20 @@
 package org.dilireum.awips.edex.requestsrv.logging;
 
-import java.io.File;
 import java.util.Map;
-import java.util.HashMap;
-
-import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
+
+import com.raytheon.uf.common.localization.PathManagerFactory;
+import com.raytheon.edex.utility.EDEXLocalizationAdapter;
 
 public class RequestsMain {
 	
 	public static void main(String[] args)  throws JAXBException {
-		JAXBContext jaxbContext = JAXBContext.newInstance(RawRequestFilters.class);
-		Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
-		RawRequestFilters requestFilters = (RawRequestFilters) jaxbUnmarshaller.unmarshal(new File("requests.xml"));
-		Map<String, RequestFilter> reqMap = new HashMap<>();
-		requestFilters.requestFiltersToMap(reqMap);
+        System.setProperty("edex.home", "/awips2/edex");
+        System.setProperty("aw.site.identifier", "OAX");
+        PathManagerFactory.setAdapter(new EDEXLocalizationAdapter());
+        RequestLogger logger = RequestLogger.getInstance();
+
+		Map<String, RequestFilter> reqMap = logger.getFilterMap();
 
 		for (String cls : reqMap.keySet()) {
 			if (reqMap.get(cls).isEnabled()) {
