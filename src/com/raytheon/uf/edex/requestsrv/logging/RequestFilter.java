@@ -3,6 +3,19 @@ package com.raytheon.uf.edex.requestsrv.logging;
 import java.util.Map;
 import java.util.HashMap;
 
+/**
+ * 
+ * @author Brian Rapp
+ * @version 1.0
+ *
+ * <pre>
+ * SOFTWARE HISTORY
+ *
+ * Date          Ticket#    Engineer    Description
+ * ------------- ---------- ----------- --------------------------------------------
+ * Mar 8, 2020   DCS 21885  brapp       Initial creation
+ * </pre>
+ */
 public class RequestFilter {
 	private String className;
 

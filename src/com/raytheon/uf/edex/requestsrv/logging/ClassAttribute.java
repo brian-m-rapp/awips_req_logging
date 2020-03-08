@@ -2,6 +2,19 @@ package com.raytheon.uf.edex.requestsrv.logging;
 
 import javax.xml.bind.annotation.*;
 
+/**
+ * 
+ * @author Brian Rapp
+ * @version 1.0
+ *
+ * <pre>
+ * SOFTWARE HISTORY
+ *
+ * Date          Ticket#    Engineer    Description
+ * ------------- ---------- ----------- --------------------------------------------
+ * Mar 8, 2020   DCS 21885  brapp       Initial creation
+ * </pre>
+ */
 @XmlRootElement(name="attribute")
 @XmlAccessorType(XmlAccessType.NONE)
 public class ClassAttribute {

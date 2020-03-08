@@ -3,6 +3,7 @@ package com.raytheon.uf.edex.requestsrv.logging;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.raytheon.uf.common.localization.ILocalizationFile;
 import com.raytheon.uf.common.localization.ILocalizationPathObserver;
@@ -29,43 +30,111 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
 /**
- * Class for logging request ({@link IServerRequest}) details.
- * Requests are logged as JSON strings in /awips2/edex/logs/edex-request-thriftSrv-<date>.log
- * Maximum string length configurable, if not configured, defaults to 80 characters
- * Implements localization override for configuration file
- * Request logging can be disabled in 2 ways: 
- * 1) delete request_logging.xml from all locations, or
- * 2) set loggingEnabled="false" in the most specific instance of request_logging.xml
- * Can remove attributes or limit their length
- * Can disable output of requests by Java class name
- * @author brapp
+ * <p>Class for logging request ({@link IServerRequest}) details.  Requests are logged
+ * to edex-request-thriftSrv-<date>.log as JSON-encoded strings to allow easy parsing 
+ * by external applications.  By default, all request attributes are logged.  Requests
+ * are instances of classes that implement the {@link IServerRequest} interface.
+ * Request logging is configured in common_static:requestsrv/logging/request_logging.xml.
+ * <p>
+ * Request logging can be disabled in 2 ways:
+ * <ol><li>delete request_logging.xml from all locations, or</li>
+ * <li>set loggingEnabled="false" in the <code>requests</code> element of the most 
+ * specific instance of request_logging.xml</li></ol>
+ * <p>Two types of attribute filtering are provided: enable/disable, and truncation 
+ * of String attributes to a maximum length.  By default, all attributes are logged.  
+ * A maximum default attribute String length is hardcoded as 
+ * {@link #DEFAULT_MAX_STRING_LENGTH}.  This maximum can be overridden by defining 
+ * the XML attribute <code>maxFieldStringLength</code> in the <code>requests</code> 
+ * tag.
+ * <p>To disable logging of a request class, use a <code>request</code> element
+ * with a <code>class</code> attribute naming the class and set the <code>enabled</code>
+ * attribute to false.  For example:
+ * <pre>{@code<request class="com.raytheon.uf.common.localization.msgs.UtilityRequestMessage" enabled="false"/>}</pre>
+ * <p>Attributes are configured for each request class using <code>attribute</code>
+ * tags within an outer <code>attributes</code>tag.
+ * For example:
+ * <pre>{@code    <request class="com.raytheon.uf.common.dataquery.requests.QlServerRequest">
+        <attributes>
+            <attribute name="query" maxlength="80"/>
+            <attribute name="lang" enabled="false"/>
+        </attributes>
+    </request>}</pre>
+ * 
+ * 
+ * @author Brian Rapp
+ * @version 1.0
  *
+ * <pre>
+ * SOFTWARE HISTORY
+ *
+ * Date          Ticket#    Engineer    Description
+ * ------------- ---------- ----------- --------------------------------------------
+ * Mar 8, 2020   DCS 21885  brapp       Initial creation
+ * </pre>
  */
 public class RequestLogger implements ILocalizationPathObserver {
 
+	/**
+	 * Default maximum length of String attributes, if not specified
+	 * in request_logging.xml.
+	 */
 	private static final int DEFAULT_MAX_STRING_LENGTH = 80;
 
+	/**
+	 * Instance of thrift server request logging (edex-request-thriftsrv-<date>).
+	 */
     private static final IUFStatusHandler 
     		requestLog = UFStatus.getNamedHandler("ThriftSrvRequestLogger");
 
+    /**
+     * Subdirectory for request configuration
+     */
     private static final String REQ_LOG_CONFIG_DIR = 
     		LocalizationUtil.join("requestsrv", "logging");
 
-    public static final String REQ_LOG_FILENAME = 
+    /**
+     * Name of request configuration file
+     */
+    private static final String REQ_LOG_FILENAME = 
     		LocalizationUtil.join(REQ_LOG_CONFIG_DIR, "request_logging.xml");
 
+    /**
+     * Singleton instance of the RequestLogger.
+     */
     private static final RequestLogger instance = new RequestLogger();
 
+    /**
+     * ObjectMapper provides functionality for reading and writing JSON,
+     * either to and from basic POJOs (Plain Old Java Objects), or to and from
+     * a general-purpose JSON Tree Model ({@link JsonNode}).
+     */
 	private final ObjectMapper mapper = new ObjectMapper();
 
+	/**
+	 * Map of {@link RequestFilter}s from the request logging configuration file(s)
+	 * keyed by request class name.
+	 */
 	private Map<String, RequestFilter> filterMap = new HashMap<>();
 
+	/**
+	 * Configured maximum String attribute logging length
+	 */
 	private int maxStringLength = DEFAULT_MAX_STRING_LENGTH;
 
+	/**
+	 * If true, request logging is enabled; if false, request details are not logged.
+	 */
 	private boolean loggingEnabled = false;  // If there is no configuration file, request details will not be logged
 
+	/**
+	 * Object for transforming XML configuration into POJOs.
+	 */
 	private Unmarshaller unmarshaller;
 
+	/**
+	 * Private constructor for initializing the RequestLogger singleton instance.  Instantiates
+	 * the unmarshaller, reads the configuration files, and sets up a localization path observer.
+	 */
 	private RequestLogger() {
         try {
         	unmarshaller = JAXBContext.newInstance(RawRequestFilters.class).createUnmarshaller();
@@ -78,10 +147,16 @@ public class RequestLogger implements ILocalizationPathObserver {
 		PathManagerFactory.getPathManager().addLocalizationPathObserver(REQ_LOG_CONFIG_DIR, this);
 	}
 
+	/**
+	 * @return The RequestLogger instance.
+	 */
 	public static RequestLogger getInstance() {
 		return instance;
 	}
 
+	/**
+	 * Internal class for stringifying request objects to JSON.
+	 */
 	@JsonPropertyOrder({"wsid", "reqClass", "request"})
 	private class RequestWrapper {
 		private String wsid;
@@ -110,6 +185,9 @@ public class RequestLogger implements ILocalizationPathObserver {
 		}
 	}
 
+	/**
+	 * Reads all configuration files.  Support localization override.
+	 */
 	private synchronized void readConfigs() {
 		IPathManager pathMgr = PathManagerFactory.getPathManager();
         LocalizationContext[] searchOrder = pathMgr.getLocalSearchHierarchy(LocalizationType.COMMON_STATIC);
@@ -144,8 +222,11 @@ public class RequestLogger implements ILocalizationPathObserver {
         }
 	}
 
+	/**
+	 * Applies configured filters to a request object map.
+	 */
 	@SuppressWarnings("unchecked")
-	public void applyFilters(Map<String, Object> requestWrapperMap) {
+	private void applyFilters(Map<String, Object> requestWrapperMap) {
 		Map<String, Object> requestMap = (Map<String, Object>) requestWrapperMap.get("request");
 		String reqClass = (String) requestWrapperMap.get("reqClass");
 		if (filterMap.containsKey(reqClass)) {
@@ -175,7 +256,11 @@ public class RequestLogger implements ILocalizationPathObserver {
 		truncateLongStrings(requestMap);
 	}
 
-	public void truncateLongStrings(Map<String, Object> jsonMap) {
+	/**
+	 * Recursively traverses an object map to truncate all String longer
+	 * than the configured maximum length.  Overrides attribute-specific settings.
+	 */
+	private void truncateLongStrings(Map<String, Object> jsonMap) {
 		for (String key : jsonMap.keySet()) {
 			Object obj = jsonMap.get(key);
 			if (obj instanceof String) {
@@ -210,6 +295,13 @@ public class RequestLogger implements ILocalizationPathObserver {
 		}
 	}
 
+	/**
+	 * Logs request to the request log after applying configured filters. 
+	 * @param wsid
+	 * 	String containing the workstation ID.
+	 * @param request
+	 * 	Request object to be logged.
+	 */
 	public void logRequest(String wsid, IServerRequest request) {
 		if (!loggingEnabled) {
 			return;
@@ -246,12 +338,20 @@ public class RequestLogger implements ILocalizationPathObserver {
 		}
 	}
 
+	/**
+	 * Callback function triggered when a request configuration file has been modified.
+	 * @param file
+	 * 	ILocalizationFile object representation of the file that changed.
+	 */
 	@Override
 	public synchronized void fileChanged(ILocalizationFile file) {
 		filterMap.clear();
 		readConfigs();
 	}
 
+	/**
+	 * @return map of request filter objects
+	 */
 	public Map<String, RequestFilter> getFilterMap() {
 		return filterMap;
 	}

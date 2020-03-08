@@ -4,6 +4,19 @@ import java.util.List;
 import java.util.ArrayList;
 import javax.xml.bind.annotation.*;
 
+/**
+ * 
+ * @author Brian Rapp
+ * @version 1.0
+ *
+ * <pre>
+ * SOFTWARE HISTORY
+ *
+ * Date          Ticket#    Engineer    Description
+ * ------------- ---------- ----------- --------------------------------------------
+ * Mar 8, 2020   DCS 21885  brapp       Initial creation
+ * </pre>
+ */
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlRootElement(name="request")
 public class RawRequestFilter {
