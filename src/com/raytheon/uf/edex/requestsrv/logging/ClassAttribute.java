@@ -3,7 +3,8 @@ package com.raytheon.uf.edex.requestsrv.logging;
 import javax.xml.bind.annotation.*;
 
 /**
- * 
+ * Class used by JAXB to transform request attribute logging configuration from XML to POJOs.
+ *  
  * @author Brian Rapp
  * @version 1.0
  *
@@ -27,27 +28,30 @@ public class ClassAttribute {
 	@XmlAttribute(name="maxlength")
 	private int maxLength = -1;
 
+	/**
+	 * Getter for attribute name
+	 * @return String
+	 * 	name of attribute
+	 */
 	public String getName() {
 		return name;
 	}
 
-	public void setName(String name) {
-		this.name = name;
-	}
-
+	/**
+	 * Getter for attribute logging enabled flag
+	 * @return boolean
+	 * 	true if enabled; false if disabled
+	 */
 	public boolean isEnabled() {
 		return enabled;
 	}
 
-	public void setEnabled(boolean enabled) {
-		this.enabled = enabled;
-	}
-
+	/**
+	 * Getter for maximum string length
+	 * @return int
+	 * 	maximum length of the attribute value to write to log
+	 */
 	public int getMaxLength() {
 		return maxLength;
-	}
-
-	public void setMaxLength(int maxLength) {
-		this.maxLength = maxLength;
 	}
 }

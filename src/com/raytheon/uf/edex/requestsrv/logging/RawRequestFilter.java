@@ -5,7 +5,8 @@ import java.util.ArrayList;
 import javax.xml.bind.annotation.*;
 
 /**
- * 
+ * Class used by JAXB to transform request logging configuration from XML to POJOs.
+ *
  * @author Brian Rapp
  * @version 1.0
  *
@@ -35,27 +36,30 @@ public class RawRequestFilter {
 	@XmlElement(name="attribute", required=false)
 	private List<ClassAttribute> attributes = new ArrayList<>();
 
+	/**
+	 * Getter for request class name
+	 * @return String
+	 * 	fully qualified request class name
+	 */
 	public String getClassName() {
 		return className;
 	}
 
-	public void setClassName(String className) {
-		this.className = className;
-	}
-
+	/**
+	 * Getter for enabled flag
+	 * @return boolean
+	 * 	true if logging for this request type is enabled; false if disabled
+	 */
 	public boolean isEnabled() {
 		return enabled;
 	}
 
-	public void setEnabled(boolean enabled) {
-		this.enabled = enabled;
-	}
-
+	/**
+	 * Getter for configured request attributes
+	 * @return List
+	 * 	List of configured {@link ClassAttribute}s
+	 */
 	public List<ClassAttribute> getAttributes() {
 		return attributes;
-	}
-
-	public void setAttributes(List<ClassAttribute> attributes) {
-		this.attributes = attributes;
 	}
 }

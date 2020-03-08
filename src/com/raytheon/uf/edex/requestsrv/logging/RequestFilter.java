@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.HashMap;
 
 /**
+ * Class for storing logging configuration for a request.
  * 
  * @author Brian Rapp
  * @version 1.0
@@ -23,6 +24,11 @@ public class RequestFilter {
 
 	private Map<String, ClassAttribute> attributeMap = new HashMap<>();
 
+	/**
+	 * Constructor for RequestFilter.
+	 * @param req
+	 * 	Raw request filter to transform into RequestFilter.  
+	 */
 	public RequestFilter(RawRequestFilter req) {
 		className = req.getClassName();
 		enabled = req.isEnabled();
@@ -31,34 +37,62 @@ public class RequestFilter {
 		}
 	}
 
+	/**
+	 * Getter for class name
+	 * @return String containing fully qualified request class name
+	 */
 	public String getClassName() {
 		return className;
 	}
 
+	/**
+	 * Setter for class name
+	 * @param className
+	 * 	String representing fully qualified request class name.
+	 */
 	public void setClassName(String className) {
 		this.className = className;
 	}
 
+	/**
+	 * Getter for request enabled flag
+	 * @return true if enabled; false if disabled
+	 */
 	public boolean isEnabled() {
 		return enabled;
 	}
 
+	/**
+	 * Setter for request enabled flag
+	 * @param enabled true to enable request; falst to disable
+	 */
 	public void setEnabled(boolean enabled) {
 		this.enabled = enabled;
 	}
 
+	/**
+	 * 
+	 * @return Map with Attribute names as keys, ClassAttribute object as value
+	 */
 	public Map<String, ClassAttribute> getAttributeMap() {
 		return attributeMap;
 	}
 
-	public void setAttributeMap(Map<String, ClassAttribute> attributeMap) {
-		this.attributeMap = attributeMap;
-	}
-
+	/**
+	 * Add an attribute object to the request object
+	 * @param attribute
+	 */
 	public void addAttribute(ClassAttribute attribute) {
 		attributeMap.put(attribute.getName(), attribute);
 	}
 
+	/**
+	 * Return the named attribute
+	 * @param attrName
+	 * 	attribute name
+	 * @return ClassAttribute
+	 * 	attribute object
+	 */
 	public ClassAttribute getAttribute(String attrName) {
 		return attributeMap.get(attrName);
 	}

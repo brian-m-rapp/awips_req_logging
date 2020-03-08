@@ -32,12 +32,14 @@ import javax.xml.bind.Unmarshaller;
 /**
  * <p>Class for logging request ({@link IServerRequest}) details.  Requests are logged
  * to edex-request-thriftSrv-<date>.log as JSON-encoded strings to allow easy parsing 
- * by external applications.  By default, all request attributes are logged.  Requests
- * are instances of classes that implement the {@link IServerRequest} interface.
- * Request logging is configured in common_static:requestsrv/logging/request_logging.xml.
+ * by external applications.  Each request class is logged unless specifically disabled.
+ * By default, all request attributes are logged.  Requests are instances of classes 
+ * that implement the {@link IServerRequest} interface.  Request logging is configured 
+ * in common_static:requestsrv/logging/request_logging.xml.  Supports localization
+ * override so a site or region can override the base default configuration.
  * <p>
  * Request logging can be disabled in 2 ways:
- * <ol><li>delete request_logging.xml from all locations, or</li>
+ * <ol><li>delete request_logging.xml from all configuration locations, or</li>
  * <li>set loggingEnabled="false" in the <code>requests</code> element of the most 
  * specific instance of request_logging.xml</li></ol>
  * <p>Two types of attribute filtering are provided: enable/disable, and truncation 
@@ -45,7 +47,8 @@ import javax.xml.bind.Unmarshaller;
  * A maximum default attribute String length is hardcoded as 
  * {@link #DEFAULT_MAX_STRING_LENGTH}.  This maximum can be overridden by defining 
  * the XML attribute <code>maxFieldStringLength</code> in the <code>requests</code> 
- * tag.
+ * tag.  Attribute configuration is additive, with the most specific configuration
+ * taking effect in the event of conflicts.
  * <p>To disable logging of a request class, use a <code>request</code> element
  * with a <code>class</code> attribute naming the class and set the <code>enabled</code>
  * attribute to false.  For example:
@@ -60,7 +63,25 @@ import javax.xml.bind.Unmarshaller;
         </attributes>
     </request>}</pre>
  * 
- * 
+ * Example configuration file:
+ * <pre>{@code
+<?xml version='1.0' encoding='UTF-8'?> 
+<requests maxFieldStringLength="150">
+    <request class="com.raytheon.uf.common.dataquery.requests.QlServerRequest">
+        <attributes>
+            <attribute name="query" maxlength="80"/>
+            <attribute name="lang" enabled="false"/>
+        </attributes>
+    </request>
+    <request class="com.raytheon.uf.common.localization.msgs.UtilityRequestMessage" enabled="false"/>
+    <request class="com.raytheon.uf.common.dataplugin.grid.request.GetGridTreeRequest" enabled="false"/>
+    <request class="com.raytheon.uf.common.alertviz.InitializeAlertMonitorsRequest" enabled="false"/>
+    <request class="com.raytheon.uf.common.localization.msgs.GetServersRequest" enabled="false"/>
+    <request class="com.raytheon.uf.common.dataplugin.request.GetPluginRecordMapRequest" enabled="false"/>
+    <request class="com.raytheon.uf.common.auth.req.CheckAuthorizationRequest" enabled="false"/>
+    <request class="com.raytheon.uf.common.menus.MenuCreationRequest" enabled="false"/>
+</requests>
+}</pre>
  * @author Brian Rapp
  * @version 1.0
  *
@@ -148,7 +169,7 @@ public class RequestLogger implements ILocalizationPathObserver {
 	}
 
 	/**
-	 * @return The RequestLogger instance.
+	 * @return RequestLogger instance.
 	 */
 	public static RequestLogger getInstance() {
 		return instance;
