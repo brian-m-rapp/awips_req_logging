@@ -341,7 +341,7 @@ public class RequestLogger implements ILocalizationPathObserver {
 
 			requestLog.info(String.format("Request::: %s", mapper.writeValueAsString(requestWrapperMap)));
 		} catch (Exception e) {
-			e.printStackTrace();
+			//e.printStackTrace();
 			return;
 		}
 	}
