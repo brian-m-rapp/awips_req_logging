@@ -3,8 +3,14 @@ package com.raytheon.uf.edex.requestsrv.logging;
 import javax.xml.bind.annotation.*;
 
 /**
- * Class used by JAXB to transform request attribute logging configuration from XML to POJOs.
- * This class contains a single attribute filter definition.
+ * Class used to represent a single attribute filter definition.
+ * Two filters exist for attributes: maxLength and enabled.  If
+ * maxLength is defined for an attribute, string values longer than
+ * the specified length will be truncated to that length + "...".
+ * Note that the absolute string maximum length will override this
+ * value if it's shorter.  All attributes are enabled by default.
+ * To disable output of an attribute, set enabled to false in the
+ * config file.
  *  
  * @author Brian Rapp
  * @version 1.0

@@ -1,7 +1,6 @@
 package com.raytheon.uf.edex.requestsrv.logging;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -30,12 +29,13 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
 /**
- * <p>Class for logging request ({@link IServerRequest}) details.  Requests are logged
- * to edex-request-thriftSrv-<date>.log as JSON-encoded strings to allow easy parsing 
- * by external applications.  Each request class is logged unless specifically disabled.
- * By default, all request attributes are logged.  Requests are instances of classes 
- * that implement the {@link IServerRequest} interface.  Request logging is configured 
- * in common_static:requestsrv/logging/request_logging.xml.  Supports localization
+ * <p>Class for logging request ({@link IServerRequest}) details.  Implemented using
+ * the singleton design pattern.  Requests are logged to edex-request-thriftSrv 
+ * as JSON-encoded strings to allow easy parsing by external applications.  Each 
+ * request class is logged unless specifically disabled.  By default, all request 
+ * attributes are logged.  Requests are instances of classes that implement the 
+ * {@link IServerRequest} interface.  Request logging is configured in 
+ * common_static:requestsrv/logging/request_logging.xml.  Supports localization
  * override so a site or region can override the base default configuration.
  * <p>
  * Request logging can be disabled in 2 ways:
@@ -74,12 +74,6 @@ import javax.xml.bind.Unmarshaller;
         </attributes>
     </request>
     <request class="com.raytheon.uf.common.localization.msgs.UtilityRequestMessage" enabled="false"/>
-    <request class="com.raytheon.uf.common.dataplugin.grid.request.GetGridTreeRequest" enabled="false"/>
-    <request class="com.raytheon.uf.common.alertviz.InitializeAlertMonitorsRequest" enabled="false"/>
-    <request class="com.raytheon.uf.common.localization.msgs.GetServersRequest" enabled="false"/>
-    <request class="com.raytheon.uf.common.dataplugin.request.GetPluginRecordMapRequest" enabled="false"/>
-    <request class="com.raytheon.uf.common.auth.req.CheckAuthorizationRequest" enabled="false"/>
-    <request class="com.raytheon.uf.common.menus.MenuCreationRequest" enabled="false"/>
 </requests>
 }</pre>
  * @author Brian Rapp

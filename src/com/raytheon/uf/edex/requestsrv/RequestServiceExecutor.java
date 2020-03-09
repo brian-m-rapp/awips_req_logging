@@ -55,6 +55,7 @@ import com.raytheon.uf.edex.requestsrv.logging.*;
  *                                  framework
  * Jul 18, 2017  6217     randerso  Removed support for old roles and
  *                                  permissions framework
+ * Mar 09, 2020  dcs21885 brapp     Added request detail logging
  *
  * </pre>
  *
