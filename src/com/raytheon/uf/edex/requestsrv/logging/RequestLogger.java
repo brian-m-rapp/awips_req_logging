@@ -177,6 +177,8 @@ public class RequestLogger implements ILocalizationPathObserver {
 
 	/**
 	 * Internal class for stringifying request objects to JSON.
+	 * Contains 3 attributes: workstation ID (wsid) as a string, the
+	 * request class as a string, and the raw deserialized request. 
 	 */
 	@JsonPropertyOrder({"wsid", "reqClass", "request"})
 	private class RequestWrapper {
@@ -328,34 +330,25 @@ public class RequestLogger implements ILocalizationPathObserver {
 			return;
 		}
 
-		String clsStr = request.getClass().getName();
-		if (filterMap.containsKey(clsStr) && !filterMap.get(clsStr).isEnabled()) {
-			requestLog.debug(String.format("Filtered request %s", clsStr));
-			return;
-		}
-
-		String jstring;
 		try {
+			String clsStr = request.getClass().getName();
+			if (filterMap.containsKey(clsStr) && !filterMap.get(clsStr).isEnabled()) {
+				requestLog.debug(String.format("Filtered request %s", clsStr));
+				return;
+			}
+
+			String jstring;
 			jstring = mapper.writeValueAsString(new RequestWrapper(wsid, request));
-		} catch (JsonProcessingException e) {
-			e.printStackTrace();
-			return;
-		}
 
-		Map<String, Object> requestWrapperMap;
-		try {
+			Map<String, Object> requestWrapperMap;
 			requestWrapperMap = mapper.readValue(jstring, new TypeReference<Map<String, Object>>(){});
+
+			applyFilters(requestWrapperMap);
+
+			requestLog.info(String.format("Request::: %s", mapper.writeValueAsString(requestWrapperMap)));
 		} catch (Exception e) {
 			e.printStackTrace();
 			return;
-		}
-
-		applyFilters(requestWrapperMap);
-
-		try {
-			requestLog.info(String.format("Request::: %s", mapper.writeValueAsString(requestWrapperMap)));
-		} catch (JsonProcessingException e) {
-			e.printStackTrace();
 		}
 	}
 

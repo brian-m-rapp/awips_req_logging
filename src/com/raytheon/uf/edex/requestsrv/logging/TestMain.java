@@ -1,9 +1,11 @@
 package com.raytheon.uf.edex.requestsrv.logging;
 
+import com.raytheon.edex.utility.EDEXLocalizationAdapter;
 import com.raytheon.uf.common.dataquery.requests.DbQueryRequest;
 import com.raytheon.uf.common.dataquery.requests.DbQueryRequestSet;
 import com.raytheon.uf.common.dataquery.requests.RequestConstraint;
 import com.raytheon.uf.common.dataquery.requests.RequestConstraint.ConstraintType;
+import com.raytheon.uf.common.localization.PathManagerFactory;
 
 public class TestMain {
 
@@ -24,7 +26,11 @@ public class TestMain {
 	}
 
 	public static void main(String[] args) {
-		String wsid = "16777343:awips:CAVE:8213:1";
+		System.setProperty("edex.home", "/awips2/edex");
+		System.setProperty("aw.site.identifier", "OAX");
+		String runMode = System.getProperty("edex.run.mode");
+		PathManagerFactory.setAdapter(new EDEXLocalizationAdapter());
+
 		DbQueryRequestSet reqSet = new DbQueryRequestSet();
 		DbQueryRequest[] requests = new DbQueryRequest[2];
 
@@ -33,6 +39,7 @@ public class TestMain {
 		requests[0] = createDbRequest("East");
 		requests[1] = createDbRequest("West");
 
+		String wsid = "16777343:awips:CAVE:8213:1";
 		formatter.logRequest(wsid, requests[0]);
 
 		reqSet.setQueries(requests);

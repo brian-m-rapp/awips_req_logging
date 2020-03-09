@@ -5,6 +5,7 @@ import java.util.HashMap;
 
 /**
  * Class for storing logging configuration for a request.
+ * Attributes are transformed from a list to a map keyed on the attribute name.
  * 
  * @author Brian Rapp
  * @version 1.0

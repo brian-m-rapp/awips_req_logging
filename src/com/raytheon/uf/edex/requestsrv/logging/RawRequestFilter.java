@@ -6,6 +6,7 @@ import javax.xml.bind.annotation.*;
 
 /**
  * Class used by JAXB to transform request logging configuration from XML to POJOs.
+ * This class maps a single request filter containing zero or more attribute filters.
  *
  * @author Brian Rapp
  * @version 1.0

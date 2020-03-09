@@ -6,6 +6,7 @@ import javax.xml.bind.annotation.*;
 
 /**
  * Class used by JAXB to transform request logging configuration from XML to POJOs.
+ * This class contains the top-level list of all request filters and global attributes.
  * 
  * @author Brian Rapp
  * @version 1.0
