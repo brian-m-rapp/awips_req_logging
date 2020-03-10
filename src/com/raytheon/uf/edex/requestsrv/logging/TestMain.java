@@ -28,7 +28,6 @@ public class TestMain {
 	public static void main(String[] args) {
 		System.setProperty("edex.home", "/awips2/edex");
 		System.setProperty("aw.site.identifier", "OAX");
-		String runMode = System.getProperty("edex.run.mode");
 		PathManagerFactory.setAdapter(new EDEXLocalizationAdapter());
 
 		DbQueryRequestSet reqSet = new DbQueryRequestSet();
