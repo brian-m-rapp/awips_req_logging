@@ -30,6 +30,9 @@ public class RawRequestFilters {
 	@XmlAttribute
 	private int maxFieldStringLength = defaultMaxStringLength;
 
+	@XmlAttribute
+	private boolean discoveryMode = false;
+
 	@XmlElement(name="request")
 	private List<RawRequestFilter> rawFilters = new ArrayList<>();
 
@@ -58,5 +61,15 @@ public class RawRequestFilters {
 	 */
 	public List<RawRequestFilter> getFilters() {
 		return rawFilters;
+	}
+
+	/**
+	 * Getter for discovery mode
+	 * @return boolean
+	 * 	if true, log all request classes; else use the config files to determine
+	 *  the classes to log.
+	 */
+	public boolean isDiscoveryMode() {
+		return discoveryMode;
 	}
 }

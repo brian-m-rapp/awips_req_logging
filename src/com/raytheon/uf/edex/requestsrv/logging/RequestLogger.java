@@ -31,12 +31,12 @@ import javax.xml.bind.Unmarshaller;
 /**
  * <p>Class for logging request ({@link IServerRequest}) details.  Implemented using
  * the singleton design pattern.  Requests are logged to edex-request-thriftSrv 
- * as JSON-encoded strings to allow easy parsing by external applications.  Each 
- * request class is logged unless specifically disabled.  By default, all request 
- * attributes are logged.  Requests are instances of classes that implement the 
- * {@link IServerRequest} interface.  Request logging is configured in 
- * common_static:requestsrv/logging/request_logging.xml.  Supports localization
- * override so a site or region can override the base default configuration.
+ * as JSON-encoded strings to allow easy parsing by external applications.  Request
+ * logging is configured as a white list: only classes that are specifically enabled
+ * are logged.  By default, all request attributes are logged.  Requests are instances 
+ * of classes that implement the {@link IServerRequest} interface.  Request logging 
+ * is configured in common_static:requestsrv/logging/request_logging.xml.  Supports 
+ * localization override so a site or region can override the base default configuration.
  * <p>
  * Request logging can be disabled in 2 ways:
  * <ol><li>delete request_logging.xml from all configuration locations, or</li>
@@ -49,9 +49,9 @@ import javax.xml.bind.Unmarshaller;
  * the XML attribute <code>maxFieldStringLength</code> in the <code>requests</code> 
  * tag.  Attribute configuration is additive, with the most specific configuration
  * taking effect in the event of conflicts.
- * <p>To disable logging of a request class, use a <code>request</code> element
- * with a <code>class</code> attribute naming the class and set the <code>enabled</code>
- * attribute to false.  For example:
+ * <p>To disable logging of a request class, either remove it from all configuration
+ * files, or use a <code>request</code> element with a <code>class</code> attribute 
+ * naming the class and set the <code>enabled</code> attribute to false.  For example:
  * <pre>{@code<request class="com.raytheon.uf.common.localization.msgs.UtilityRequestMessage" enabled="false"/>}</pre>
  * <p>Attributes are configured for each request class using <code>attribute</code>
  * tags within an outer <code>attributes</code>tag.
@@ -67,15 +67,17 @@ import javax.xml.bind.Unmarshaller;
  * <pre>{@code
 <?xml version='1.0' encoding='UTF-8'?> 
 <requests maxFieldStringLength="150">
-    <request class="com.raytheon.uf.common.dataquery.requests.QlServerRequest">
-        <attributes>
-            <attribute name="query" maxlength="80"/>
-            <attribute name="lang" enabled="false"/>
-        </attributes>
-    </request>
-    <request class="com.raytheon.uf.common.localization.msgs.UtilityRequestMessage" enabled="false"/>
+    <request class="com.raytheon.uf.common.dataquery.requests.DbQueryRequest"/>
+    <request class="com.raytheon.uf.common.dataquery.requests.DbQueryRequestSet"/>
+    <request class="com.raytheon.uf.common.dataquery.requests.TimeQueryRequestSet"/>
+    <request class="com.raytheon.uf.common.pointdata.PointDataServerRequest"/>
 </requests>
+
 }</pre>
+ * A special "Discovery Mode" exists to allow logging of all request classes for assisting
+ * in creating the white list.  To enable, add <code>inDiscoveryMode="true"</code> as an XML 
+ * attribute to the "requests" tag.  Also, logging must be enabled (i.e. - not disabled).
+ * 
  * @author Brian Rapp
  * @version 1.0
  *
@@ -102,16 +104,19 @@ public class RequestLogger implements ILocalizationPathObserver {
     		requestLog = UFStatus.getNamedHandler("ThriftSrvRequestLogger");
 
     /**
-     * Subdirectory for request configuration
+     * Edex run mode for determining config file path
      */
-    private static final String REQ_LOG_CONFIG_DIR = 
-    		LocalizationUtil.join("requestsrv", "logging");
+    private static final String edexRunMode = System.getProperty("edex.run.mode");
 
     /**
-     * Name of request configuration file
+     * Subdirectory for request configuration
      */
-    private static final String REQ_LOG_FILENAME = 
-    		LocalizationUtil.join(REQ_LOG_CONFIG_DIR, "request_logging.xml");
+    private static final String REQ_LOG_CONFIG_DIR = LocalizationUtil.join("request", "logging");
+
+    /**
+     * Name of request configuration file.  Determined by EDEX run mode.
+     */
+    private static String REQ_LOG_FILENAME = null;
 
     /**
      * Singleton instance of the RequestLogger.
@@ -142,6 +147,12 @@ public class RequestLogger implements ILocalizationPathObserver {
 	private boolean loggingEnabled = false;  // If there is no configuration file, request details will not be logged
 
 	/**
+	 * If true, log all request classes, otherwise use the configuration files to determine
+	 * which request classes to log.
+	 */
+	private boolean inDiscoveryMode = false;
+
+	/**
 	 * Object for transforming XML configuration into POJOs.
 	 */
 	private Unmarshaller unmarshaller;
@@ -151,15 +162,39 @@ public class RequestLogger implements ILocalizationPathObserver {
 	 * the unmarshaller, reads the configuration files, and sets up a localization path observer.
 	 */
 	private RequestLogger() {
-        try {
-        	unmarshaller = JAXBContext.newInstance(RawRequestFilters.class).createUnmarshaller();
-        } catch (JAXBException e) {
-        	requestLog.error("Error creating context for RequestLogger", e);
-            throw new ExceptionInInitializerError("Error creating context for RequestLogger");
-        }
+		/*
+		 * Config file name is determined by which instance of EDEX this is.  Currently, 
+		 * only the "request" instance can log requests.  If request logging is desired in 
+		 * other instances, add the appropriate case(s) to the switch statement.  If the mode 
+		 * isn't one configured for logging, logging will be disabled. 
+		 */
+		switch (edexRunMode) {
+			case "request":
+				REQ_LOG_FILENAME = LocalizationUtil.join(REQ_LOG_CONFIG_DIR, "request.xml");
+				break;
 
-        readConfigs();
-		PathManagerFactory.getPathManager().addLocalizationPathObserver(REQ_LOG_CONFIG_DIR, this);
+			case "registry":
+				REQ_LOG_FILENAME = LocalizationUtil.join(REQ_LOG_CONFIG_DIR, "registry.xml");
+				break;
+
+			default:
+				REQ_LOG_FILENAME = null;
+				break;
+		}
+
+		/* Don't try to read config files for run modes we don't care about.  
+		 * Logging is disabled by default. */
+		if (REQ_LOG_FILENAME != null) {
+			try {
+	        	unmarshaller = JAXBContext.newInstance(RawRequestFilters.class).createUnmarshaller();
+	        } catch (JAXBException e) {
+	        	requestLog.error("Error creating context for RequestLogger", e);
+	            throw new ExceptionInInitializerError("Error creating context for RequestLogger");
+	        }
+
+	        readConfigs();
+			PathManagerFactory.getPathManager().addLocalizationPathObserver(REQ_LOG_CONFIG_DIR, this);
+		}
 	}
 
 	/**
@@ -232,6 +267,7 @@ public class RequestLogger implements ILocalizationPathObserver {
         			}
         	        maxStringLength = rawFilters.getMaxFieldStringLength();
         	        loggingEnabled = rawFilters.isLoggingEnabled();
+        	        inDiscoveryMode = rawFilters.isDiscoveryMode();
         		} catch (Exception e) {
         			e.printStackTrace();
         		}
@@ -326,20 +362,20 @@ public class RequestLogger implements ILocalizationPathObserver {
 
 		try {
 			String clsStr = request.getClass().getName();
-			if (filterMap.containsKey(clsStr) && !filterMap.get(clsStr).isEnabled()) {
+			if (inDiscoveryMode ||
+			   (filterMap.containsKey(clsStr) && filterMap.get(clsStr).isEnabled())) {
+				String jstring;
+				jstring = mapper.writeValueAsString(new RequestWrapper(wsid, request));
+	
+				Map<String, Object> requestWrapperMap;
+				requestWrapperMap = mapper.readValue(jstring, new TypeReference<Map<String, Object>>(){});
+	
+				applyFilters(requestWrapperMap);
+	
+				requestLog.info(String.format("Request::: %s", mapper.writeValueAsString(requestWrapperMap)));
+			} else {
 				requestLog.debug(String.format("Filtered request %s", clsStr));
-				return;
 			}
-
-			String jstring;
-			jstring = mapper.writeValueAsString(new RequestWrapper(wsid, request));
-
-			Map<String, Object> requestWrapperMap;
-			requestWrapperMap = mapper.readValue(jstring, new TypeReference<Map<String, Object>>(){});
-
-			applyFilters(requestWrapperMap);
-
-			requestLog.info(String.format("Request::: %s", mapper.writeValueAsString(requestWrapperMap)));
 		} catch (Exception e) {
 			//e.printStackTrace();
 			return;

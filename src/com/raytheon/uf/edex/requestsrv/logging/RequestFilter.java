@@ -65,7 +65,7 @@ public class RequestFilter {
 
 	/**
 	 * Setter for request enabled flag
-	 * @param enabled true to enable request; falst to disable
+	 * @param enabled true to enable request; false to disable
 	 */
 	public void setEnabled(boolean enabled) {
 		this.enabled = enabled;
@@ -81,7 +81,7 @@ public class RequestFilter {
 
 	/**
 	 * Add an attribute object to the request object
-	 * @param attribute
+	 * @param attribute ClassAttribute object to be added to the map
 	 */
 	public void addAttribute(ClassAttribute attribute) {
 		attributeMap.put(attribute.getName(), attribute);
