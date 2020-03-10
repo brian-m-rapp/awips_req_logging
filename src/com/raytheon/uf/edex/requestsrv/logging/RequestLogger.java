@@ -215,14 +215,10 @@ public class RequestLogger implements ILocalizationPathObserver {
 	 * request class as a string, and the raw deserialized request. 
 	 */
 	@JsonPropertyOrder({"wsid", "reqClass", "request"})
+	@SuppressWarnings("unused")
 	private class RequestWrapper {
-		@SuppressWarnings("unused")
 		private String wsid;
-
-		@SuppressWarnings("unused")
 		private String reqClass;
-
-		@SuppressWarnings("unused")
 		private IServerRequest request;
 
 		public RequestWrapper(String wsid, IServerRequest request) {
