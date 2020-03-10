@@ -163,10 +163,7 @@ public class RequestLogger implements ILocalizationPathObserver {
 	 */
 	private RequestLogger() {
 		/*
-		 * Config file name is determined by which instance of EDEX this is.  Currently, 
-		 * only the "request" instance can log requests.  If request logging is desired in 
-		 * other instances, add the appropriate case(s) to the switch statement.  If the mode 
-		 * isn't one configured for logging, logging will be disabled. 
+		 * Config file name is determined by which instance of EDEX this is.
 		 */
 		switch (edexRunMode) {
 			case "request":		// Request server
@@ -227,21 +224,6 @@ public class RequestLogger implements ILocalizationPathObserver {
 			this.wsid = wsid;
 			this.reqClass = request.getClass().getName();
 			this.request = request;
-		}
-
-		@SuppressWarnings("unused")
-		public String getWsid() {
-			return wsid;
-		}
-
-		@SuppressWarnings("unused")
-		public String getReqClass() {
-			return reqClass;
-		}
-
-		@SuppressWarnings("unused")
-		public IServerRequest getRequest() {
-			return request;
 		}
 	}
 
