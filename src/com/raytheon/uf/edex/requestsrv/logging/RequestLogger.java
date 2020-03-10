@@ -216,8 +216,13 @@ public class RequestLogger implements ILocalizationPathObserver {
 	 */
 	@JsonPropertyOrder({"wsid", "reqClass", "request"})
 	private class RequestWrapper {
+		@SuppressWarnings("unused")
 		private String wsid;
+
+		@SuppressWarnings("unused")
 		private String reqClass;
+
+		@SuppressWarnings("unused")
 		private IServerRequest request;
 
 		public RequestWrapper(String wsid, IServerRequest request) {
