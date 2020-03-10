@@ -169,12 +169,20 @@ public class RequestLogger implements ILocalizationPathObserver {
 		 * isn't one configured for logging, logging will be disabled. 
 		 */
 		switch (edexRunMode) {
-			case "request":
+			case "request":		// Request server
 				REQ_LOG_FILENAME = LocalizationUtil.join(REQ_LOG_CONFIG_DIR, "request.xml");
 				break;
 
-			case "registry":
+			case "registry":	// Data Delivery and Hazard Services
 				REQ_LOG_FILENAME = LocalizationUtil.join(REQ_LOG_CONFIG_DIR, "registry.xml");
+				break;
+
+			case "centralRegistry":
+				REQ_LOG_FILENAME = LocalizationUtil.join(REQ_LOG_CONFIG_DIR, "centralRegistry.xml");
+				break;
+
+			case "bmh":
+				REQ_LOG_FILENAME = LocalizationUtil.join(REQ_LOG_CONFIG_DIR, "bmh.xml");
 				break;
 
 			default:
@@ -310,7 +318,7 @@ public class RequestLogger implements ILocalizationPathObserver {
 	}
 
 	/**
-	 * Recursively traverses an object map to truncate all String longer
+	 * Recursively traverses an object map to truncate all Strings longer
 	 * than the configured maximum length.  Overrides attribute-specific settings.
 	 */
 	private void truncateLongStrings(Map<String, Object> jsonMap) {
