@@ -226,6 +226,18 @@ public class RequestLogger implements ILocalizationPathObserver {
 			this.reqClass = request.getClass().getName();
 			this.request = request;
 		}
+
+		public String getWsid() {
+			return wsid;
+		}
+
+		public String getReqClass() {
+			return reqClass;
+		}
+
+		public IServerRequest getRequest() {
+			return request;
+		}
 	}
 
 	/**
@@ -251,10 +263,8 @@ public class RequestLogger implements ILocalizationPathObserver {
         					for (ClassAttribute attr : req.getAttributes()) {
         						attrs.put(attr.getName(), attr);
         					}
-        				} else {
-        					// This is a new filter
-        					filterMap.put(req.getClassName(), new RequestFilter(req));
         				}
+    					filterMap.put(req.getClassName(), new RequestFilter(req));
         			}
         	        maxStringLength = rawFilters.getMaxFieldStringLength();
         	        loggingEnabled = rawFilters.isLoggingEnabled();
@@ -382,5 +392,12 @@ public class RequestLogger implements ILocalizationPathObserver {
 	public synchronized void fileChanged(ILocalizationFile file) {
 		filterMap.clear();
 		readConfigs();
+	}
+
+	/**
+	 * @return map of request filter objects
+	 */
+	public Map<String, RequestFilter> getFilterMap() {
+		return filterMap;
 	}
 }
