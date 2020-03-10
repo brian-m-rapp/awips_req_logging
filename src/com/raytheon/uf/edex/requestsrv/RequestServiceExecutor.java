@@ -34,7 +34,7 @@ import com.raytheon.uf.edex.auth.AuthManagerFactory;
 import com.raytheon.uf.edex.auth.req.AbstractPrivilegedRequestHandler;
 import com.raytheon.uf.edex.auth.resp.AuthorizationResponse;
 import com.raytheon.uf.edex.auth.resp.ResponseFactory;
-import com.raytheon.uf.edex.requestsrv.logging.*;
+import com.raytheon.uf.edex.requestsrv.logging.RequestLogger;
 
 /**
  * Class that handles the execution of {@link IServerRequest}s. Contains the
