@@ -212,7 +212,8 @@ public class RequestLogger implements ILocalizationPathObserver {
             try {
                 unmarshaller = JAXBContext.newInstance(RawRequestFilters.class).createUnmarshaller();
             } catch (JAXBException e) {
-                requestLog.error("Error creating context for RequestLogger", e);
+                if (requestLog != null)
+                    requestLog.error("Error creating context for RequestLogger", e);
                 throw new ExceptionInInitializerError("Error creating context for RequestLogger");
             }
 
@@ -388,7 +389,7 @@ public class RequestLogger implements ILocalizationPathObserver {
      *     Request object to be logged.
      */
     public void logRequest(String wsid, IServerRequest request) {
-        if (!loggingEnabled) {
+        if (!loggingEnabled || (requestLog == null)) {
             return;
         }
 
