@@ -77,7 +77,7 @@ import javax.xml.bind.Unmarshaller;
  * For example:
  * <pre>{@code    <request class="com.raytheon.uf.common.dataquery.requests.QlServerRequest">
         <attributes>
-            <attribute name="query" maxlength="80"/>
+            <attribute name="query" maxLength="80"/>
             <attribute name="lang" enabled="false"/>
         </attributes>
     </request>}</pre>
