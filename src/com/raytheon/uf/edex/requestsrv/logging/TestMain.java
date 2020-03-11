@@ -33,15 +33,23 @@ public class TestMain {
 		DbQueryRequestSet reqSet = new DbQueryRequestSet();
 		DbQueryRequest[] requests = new DbQueryRequest[2];
 
-		RequestLogger formatter = RequestLogger.getInstance();
+		RequestLogger reqLogger = RequestLogger.getInstance();
 
 		requests[0] = createDbRequest("East");
 		requests[1] = createDbRequest("West");
 
 		String wsid = "16777343:awips:CAVE:8213:1";
-		formatter.logRequest(wsid, requests[0]);
+		long startTime;
+		long endTime;
+		startTime = System.currentTimeMillis();
+		reqLogger.logRequest(wsid, requests[0]);
+		endTime = System.currentTimeMillis();
+		System.out.format("Execution time %d ms\n", endTime-startTime);
 
 		reqSet.setQueries(requests);
-		formatter.logRequest(wsid, reqSet);
+		startTime = System.currentTimeMillis();
+		reqLogger.logRequest(wsid, reqSet);
+		endTime = System.currentTimeMillis();
+		System.out.format("Execution time %d ms\n", endTime-startTime);
 	}
 }

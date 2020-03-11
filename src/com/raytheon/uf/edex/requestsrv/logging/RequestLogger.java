@@ -29,31 +29,50 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
 /**
- * <p>Class for logging request ({@link IServerRequest}) details.  Implemented using
+ * Class for logging request ({@link IServerRequest}) details.  Implemented using
  * the singleton design pattern.  Requests are logged to edex-request-thriftSrv 
  * as JSON-encoded strings to allow easy parsing by external applications.  Request
- * logging is configured as a white list: only classes that are specifically enabled
- * are logged.  By default, all request attributes are logged.  Requests are instances 
- * of classes that implement the {@link IServerRequest} interface.  Request logging 
- * is configured in common_static:requestsrv/logging/request_logging.xml.  Supports 
- * localization override so a site or region can override the base default configuration.
+ * logging is configured as a white list: only classes explicitly identified and 
+ * enabled are logged.  By default, all request attributes are logged for enabled 
+ * classes.  Requests are instances of {@link IServerRequest}.  Request logging is 
+ * configured in common_static:requestsrv/logging/request_logging.xml.  Supports 
+ * localization override so a site or region can override the base default 
+ * configuration.
  * <p>
- * Request logging can be disabled in 2 ways:
+ * Request logging can be disabled in one of two ways:
  * <ol><li>delete request_logging.xml from all configuration locations, or</li>
  * <li>set loggingEnabled="false" in the <code>requests</code> element of the most 
  * specific instance of request_logging.xml</li></ol>
- * <p>Two types of attribute filtering are provided: enable/disable, and truncation 
+ * <p>
+ * A special "discovery mode" exists for developing configuration files.  In 
+ * discovery mode, all requests are logged unless explicitly disabled.  It is 
+ * enabled by setting the XML attribute <code>discoveryMode="true"</code> in the 
+ * requests tag.  Then run requestsrv for some period of time while exercising 
+ * CAVE, GFE, etc.  Review the edex-request-thriftsrv log to identify the desired 
+ * request classes and define them as enabled in a config file.  To assist with 
+ * this process, you can explicitly disable classes you aren't interested in 
+ * logging by setting <code>enabled="false"</code>.  When done with discovery, 
+ * either remove the discoveryMode attribute from the requests tag, or set it to 
+ * "false".
+ * <p>
+ * Request filtering uses the value for a class from the most specific configuration
+ * file.  If the base file has a class enabled, you can disable it at the site level
+ * by defining a request element for it in the site-level file and set enabled="false".
+ * <p>
+ * Two types of attribute filtering are supported: enable/disable, and truncation 
  * of String attributes to a maximum length.  By default, all attributes are logged.  
  * A maximum default attribute String length is hardcoded as 
  * {@link #DEFAULT_MAX_STRING_LENGTH}.  This maximum can be overridden by defining 
  * the XML attribute <code>maxFieldStringLength</code> in the <code>requests</code> 
  * tag.  Attribute configuration is additive, with the most specific configuration
  * taking effect in the event of conflicts.
- * <p>To disable logging of a request class, either remove it from all configuration
+ * <p>
+ * To disable logging of a request class, either remove it from all configuration
  * files, or use a <code>request</code> element with a <code>class</code> attribute 
  * naming the class and set the <code>enabled</code> attribute to false.  For example:
  * <pre>{@code<request class="com.raytheon.uf.common.localization.msgs.UtilityRequestMessage" enabled="false"/>}</pre>
- * <p>Attributes are configured for each request class using <code>attribute</code>
+ * <p>
+ * Attributes are configured for each request class using <code>attribute</code>
  * tags within an outer <code>attributes</code>tag.
  * For example:
  * <pre>{@code    <request class="com.raytheon.uf.common.dataquery.requests.QlServerRequest">
@@ -63,7 +82,7 @@ import javax.xml.bind.Unmarshaller;
         </attributes>
     </request>}</pre>
  * 
- * Example configuration file:
+ * Sample configuration file:
  * <pre>{@code
 <?xml version='1.0' encoding='UTF-8'?> 
 <requests maxFieldStringLength="150">
@@ -74,12 +93,8 @@ import javax.xml.bind.Unmarshaller;
 </requests>
 
 }</pre>
- * A special "Discovery Mode" exists to allow logging of all request classes for assisting
- * in creating the white list.  To enable, add <code>inDiscoveryMode="true"</code> as an XML 
- * attribute to the "requests" tag.  Also, logging must be enabled (i.e. - not disabled).
  * 
  * @author Brian Rapp
- * @version 1.0
  *
  * <pre>
  * SOFTWARE HISTORY
@@ -283,13 +298,16 @@ public class RequestLogger implements ILocalizationPathObserver {
 	private void applyFilters(Map<String, Object> requestWrapperMap) {
 		Map<String, Object> requestMap = (Map<String, Object>) requestWrapperMap.get("request");
 		String reqClass = (String) requestWrapperMap.get("reqClass");
+
 		if (filterMap.containsKey(reqClass)) {
 			RequestFilter reqFilter = filterMap.get(requestWrapperMap.get("reqClass"));
 			Map<String, ClassAttribute> attrFilters = reqFilter.getAttributeMap();
 			Iterator<Map.Entry<String, Object>> iterator = requestMap.entrySet().iterator();
+
 			while (iterator.hasNext()) {
 				Map.Entry<String, Object> field = iterator.next();
 				String fieldKey = field.getKey();
+
 				if (attrFilters.containsKey(fieldKey)) {
 					ClassAttribute attr = attrFilters.get(fieldKey);
 					if (!attr.isEnabled()) {
@@ -299,6 +317,7 @@ public class RequestLogger implements ILocalizationPathObserver {
 
 					if (attr.getMaxLength() > 0) {
 						String fieldValue = (String) field.getValue();
+
 						if (fieldValue.length() > attr.getMaxLength()) {
 							field.setValue(fieldValue.substring(0, attr.getMaxLength()) + "...");
 						}
@@ -317,21 +336,26 @@ public class RequestLogger implements ILocalizationPathObserver {
 	private void truncateLongStrings(Map<String, Object> jsonMap) {
 		for (String key : jsonMap.keySet()) {
 			Object obj = jsonMap.get(key);
+
 			if (obj instanceof String) {
 				if ((maxStringLength > 0) && ((String) obj).length() > maxStringLength) {
 					String nstr = (String) obj;
+
 					jsonMap.put(key, nstr.substring(0, maxStringLength) + "...");
 				}
 			} else if (obj instanceof Map) {
 				@SuppressWarnings("unchecked")
 				Map<String, Object> mapObj = (Map<String, Object>) obj;
+
 				truncateLongStrings(mapObj);
 			} else if (obj instanceof ArrayList) {
 				List<?> objs = (ArrayList<?>) obj;
+
 				if (objs.size() > 0) {
 					if (objs.get(0) instanceof String) {
 						@SuppressWarnings("unchecked")
 						List<String> strArrayList = (ArrayList<String>) objs;
+
 						for (int i = 0; i < strArrayList.size(); i++) {
 							if ((maxStringLength > 0) && (strArrayList.get(i).length() > maxStringLength)) {
 								strArrayList.set(i, strArrayList.get(i).substring(0, maxStringLength) + "...");
@@ -340,6 +364,7 @@ public class RequestLogger implements ILocalizationPathObserver {
 					} else if (objs.get(0) instanceof Map) {
 						@SuppressWarnings("unchecked")
 						List<Map<String, Object>> mapArrayList = (ArrayList<Map<String, Object>>) obj;
+
 						for (int i = 0; i < mapArrayList.size(); i++) {
 							truncateLongStrings(mapArrayList.get(i));
 						}
@@ -351,6 +376,8 @@ public class RequestLogger implements ILocalizationPathObserver {
 
 	/**
 	 * Logs request to the request log after applying configured filters. 
+	 * Request filtering and logging is done in a separate thread to allow
+	 * request processing to continue unimpeded by logging.
 	 * @param wsid
 	 * 	String containing the workstation ID.
 	 * @param request
@@ -361,26 +388,44 @@ public class RequestLogger implements ILocalizationPathObserver {
 			return;
 		}
 
-		try {
-			String clsStr = request.getClass().getName();
-			if (inDiscoveryMode ||
-			   (filterMap.containsKey(clsStr) && filterMap.get(clsStr).isEnabled())) {
-				String jstring;
-				jstring = mapper.writeValueAsString(new RequestWrapper(wsid, request));
-	
-				Map<String, Object> requestWrapperMap;
-				requestWrapperMap = mapper.readValue(jstring, new TypeReference<Map<String, Object>>(){});
-	
-				applyFilters(requestWrapperMap);
-	
-				requestLog.info(String.format("Request::: %s", mapper.writeValueAsString(requestWrapperMap)));
-			} else {
-				requestLog.debug(String.format("Filtered request %s", clsStr));
+		new Thread(new Runnable() {
+			private String wsid;
+			private IServerRequest request;
+
+			public Runnable init(String wsid, IServerRequest request) {
+				this.wsid = wsid;
+				this.request = request;
+				return this;
 			}
-		} catch (Exception e) {
-			//e.printStackTrace();
-			return;
-		}
+
+			@Override
+			public void run() {
+				try {
+					String clsStr = request.getClass().getName();
+					/*
+					 * Log the request if it's explicitly enabled, -OR-
+					 * if discovery Mode is set and the request class isn't in a config file.
+					 * This allows discovery mode to ignore requests that are explicitly disabled.
+					 */
+					if ((filterMap.containsKey(clsStr) && filterMap.get(clsStr).isEnabled())
+						|| (inDiscoveryMode && !filterMap.containsKey(clsStr))) {
+						Map<String, Object> requestWrapperMap = mapper.readValue(
+							mapper.writeValueAsString(new RequestWrapper(wsid, request)), 
+							new TypeReference<Map<String, Object>>(){}
+						);
+
+						applyFilters(requestWrapperMap);
+
+						requestLog.info(String.format("Request::: %s", mapper.writeValueAsString(requestWrapperMap)));
+					} else {
+						requestLog.debug(String.format("Filtered::: %s", clsStr));
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+					return;
+				}
+			}
+		}.init(wsid, request)).start();
 	}
 
 	/**
