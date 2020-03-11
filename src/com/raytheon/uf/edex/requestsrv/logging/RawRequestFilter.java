@@ -22,45 +22,45 @@ import javax.xml.bind.annotation.*;
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlRootElement(name="request")
 public class RawRequestFilter {
-	@XmlAttribute(name="class")
-	private String className;
+    @XmlAttribute(name="class")
+    private String className;
 
-	@XmlAttribute
-	private boolean enabled = true;	// Logging for each request type defaults to true
+    @XmlAttribute
+    private boolean enabled = true;    // Logging for each request type defaults to true
 
-	/* 
-	 * Attributes are loaded from the XML file into this ArrayList.  
-	 * Call attributesToMap() to copy the attributes to attributeMap HashMap.
-	 * The HashMap provides efficient access by attribute name.
-	 */
-	@XmlElementWrapper(name="attributes", required=false)
-	@XmlElement(name="attribute", required=false)
-	private List<ClassAttribute> attributes = new ArrayList<>();
+    /* 
+     * Attributes are loaded from the XML file into this ArrayList.  
+     * Call attributesToMap() to copy the attributes to attributeMap HashMap.
+     * The HashMap provides efficient access by attribute name.
+     */
+    @XmlElementWrapper(name="attributes", required=false)
+    @XmlElement(name="attribute", required=false)
+    private List<ClassAttribute> attributes = new ArrayList<>();
 
-	/**
-	 * Getter for request class name
-	 * @return String
-	 * 	fully qualified request class name
-	 */
-	public String getClassName() {
-		return className;
-	}
+    /**
+     * Getter for request class name
+     * @return String
+     *     fully qualified request class name
+     */
+    public String getClassName() {
+        return className;
+    }
 
-	/**
-	 * Getter for enabled flag
-	 * @return boolean
-	 * 	true if logging for this request type is enabled; false if disabled
-	 */
-	public boolean isEnabled() {
-		return enabled;
-	}
+    /**
+     * Getter for enabled flag
+     * @return boolean
+     *     true if logging for this request type is enabled; false if disabled
+     */
+    public boolean isEnabled() {
+        return enabled;
+    }
 
-	/**
-	 * Getter for configured request attributes
-	 * @return List
-	 * 	List of configured {@link ClassAttribute}s
-	 */
-	public List<ClassAttribute> getAttributes() {
-		return attributes;
-	}
+    /**
+     * Getter for configured request attributes
+     * @return List
+     *     List of configured {@link ClassAttribute}s
+     */
+    public List<ClassAttribute> getAttributes() {
+        return attributes;
+    }
 }

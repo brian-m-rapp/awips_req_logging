@@ -22,54 +22,54 @@ import javax.xml.bind.annotation.*;
 @XmlRootElement(name="requests")
 @XmlAccessorType(XmlAccessType.NONE)
 public class RawRequestFilters {
-	final private int defaultMaxStringLength = 160;
+    final private int defaultMaxStringLength = 160;
 
-	@XmlAttribute
-	private boolean loggingEnabled = true;
+    @XmlAttribute
+    private boolean loggingEnabled = true;
 
-	@XmlAttribute
-	private int maxFieldStringLength = defaultMaxStringLength;
+    @XmlAttribute
+    private int maxFieldStringLength = defaultMaxStringLength;
 
-	@XmlAttribute
-	private boolean discoveryMode = false;
+    @XmlAttribute
+    private boolean discoveryMode = false;
 
-	@XmlElement(name="request")
-	private List<RawRequestFilter> rawFilters = new ArrayList<>();
+    @XmlElement(name="request")
+    private List<RawRequestFilter> rawFilters = new ArrayList<>();
 
-	/**
-	 * Getter for request logging enabled flag
-	 * @return boolean
-	 * 	true if request logging is enabled; false if disabled
-	 */
-	public boolean isLoggingEnabled() {
-		return loggingEnabled;
-	}
+    /**
+     * Getter for request logging enabled flag
+     * @return boolean
+     *     true if request logging is enabled; false if disabled
+     */
+    public boolean isLoggingEnabled() {
+        return loggingEnabled;
+    }
 
-	/**
-	 * Getter for maximum length of logged request attribute strings
-	 * @return int
-	 * 	maximum length of string attributes
-	 */
-	public int getMaxFieldStringLength() {
-		return maxFieldStringLength;
-	}
+    /**
+     * Getter for maximum length of logged request attribute strings
+     * @return int
+     *     maximum length of string attributes
+     */
+    public int getMaxFieldStringLength() {
+        return maxFieldStringLength;
+    }
 
-	/**
-	 * Getter for request filters
-	 * @return List
-	 * 	List of {@link RawRequestFilter}s
-	 */
-	public List<RawRequestFilter> getFilters() {
-		return rawFilters;
-	}
+    /**
+     * Getter for request filters
+     * @return List
+     *     List of {@link RawRequestFilter}s
+     */
+    public List<RawRequestFilter> getFilters() {
+        return rawFilters;
+    }
 
-	/**
-	 * Getter for discovery mode
-	 * @return boolean
-	 * 	if true, log all request classes; else use the config files to determine
-	 *  the classes to log.
-	 */
-	public boolean isDiscoveryMode() {
-		return discoveryMode;
-	}
+    /**
+     * Getter for discovery mode
+     * @return boolean
+     *     if true, log all request classes; else use the config files to determine
+     *  the classes to log.
+     */
+    public boolean isDiscoveryMode() {
+        return discoveryMode;
+    }
 }

@@ -106,17 +106,16 @@ import javax.xml.bind.Unmarshaller;
  */
 public class RequestLogger implements ILocalizationPathObserver {
 
-	/**
-	 * Default maximum length of String attributes, if not specified
-	 * in request_logging.xml.
-	 */
-	private static final int DEFAULT_MAX_STRING_LENGTH = 80;
+    /**
+     * Default maximum length of String attributes, if not specified
+     * in request_logging.xml.
+     */
+    private static final int DEFAULT_MAX_STRING_LENGTH = 80;
 
-	/**
-	 * Instance of thrift server request logging (edex-request-thriftsrv-<date>).
-	 */
-    private static final IUFStatusHandler 
-    		requestLog = UFStatus.getNamedHandler("ThriftSrvRequestLogger");
+    /**
+     * Instance of thrift server request logging (edex-request-thriftsrv-<date>).
+     */
+    private static IUFStatusHandler requestLog;
 
     /**
      * Edex run mode for determining config file path
@@ -143,306 +142,311 @@ public class RequestLogger implements ILocalizationPathObserver {
      * either to and from basic POJOs (Plain Old Java Objects), or to and from
      * a general-purpose JSON Tree Model ({@link JsonNode}).
      */
-	private final ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = new ObjectMapper();
 
-	/**
-	 * Map of {@link RequestFilter}s from the request logging configuration file(s)
-	 * keyed by request class name.
-	 */
-	private Map<String, RequestFilter> filterMap = new HashMap<>();
+    /**
+     * Map of {@link RequestFilter}s from the request logging configuration file(s)
+     * keyed by request class name.
+     */
+    private Map<String, RequestFilter> filterMap = new HashMap<>();
 
-	/**
-	 * Configured maximum String attribute logging length
-	 */
-	private int maxStringLength = DEFAULT_MAX_STRING_LENGTH;
+    /**
+     * Configured maximum String attribute logging length
+     */
+    private int maxStringLength = DEFAULT_MAX_STRING_LENGTH;
 
-	/**
-	 * If true, request logging is enabled; if false, request details are not logged.
-	 */
-	private boolean loggingEnabled = false;  // If there is no configuration file, request details will not be logged
+    /**
+     * If true, request logging is enabled; if false, request details are not logged.
+     */
+    private boolean loggingEnabled = false;  // If there is no configuration file, request details will not be logged
 
-	/**
-	 * If true, log all request classes, otherwise use the configuration files to determine
-	 * which request classes to log.
-	 */
-	private boolean inDiscoveryMode = false;
+    /**
+     * If true, log all request classes, otherwise use the configuration files to determine
+     * which request classes to log.
+     */
+    private boolean inDiscoveryMode = false;
 
-	/**
-	 * Object for transforming XML configuration into POJOs.
-	 */
-	private Unmarshaller unmarshaller;
+    /**
+     * Object for transforming XML configuration into POJOs.
+     */
+    private Unmarshaller unmarshaller;
 
-	/**
-	 * Private constructor for initializing the RequestLogger singleton instance.  Instantiates
-	 * the unmarshaller, reads the configuration files, and sets up a localization path observer.
-	 */
-	private RequestLogger() {
-		/*
-		 * Config file name is determined by which instance of EDEX this is.
-		 */
-		switch (edexRunMode) {
-			case "request":		// Request server
-				REQ_LOG_FILENAME = LocalizationUtil.join(REQ_LOG_CONFIG_DIR, "request.xml");
-				break;
+    /**
+     * Private constructor for initializing the RequestLogger singleton instance.  Instantiates
+     * the unmarshaller, reads the configuration files, and sets up a localization path observer.
+     */
+    private RequestLogger() {
+        /*
+         * Config file name is determined by which instance of EDEX this is.
+         */
+        switch (edexRunMode) {
+            case "request":        // Request server
+                REQ_LOG_FILENAME = LocalizationUtil.join(REQ_LOG_CONFIG_DIR, "request.xml");
+                requestLog = UFStatus.getNamedHandler("ThriftSrvRequestLogger");
+                break;
 
-			case "registry":	// Data Delivery and Hazard Services
-				REQ_LOG_FILENAME = LocalizationUtil.join(REQ_LOG_CONFIG_DIR, "registry.xml");
-				break;
+            case "registry":    // Data Delivery and Hazard Services
+                REQ_LOG_FILENAME = LocalizationUtil.join(REQ_LOG_CONFIG_DIR, "registry.xml");
+                requestLog = null;
+                break;
 
-			case "centralRegistry":
-				REQ_LOG_FILENAME = LocalizationUtil.join(REQ_LOG_CONFIG_DIR, "centralRegistry.xml");
-				break;
+            case "centralRegistry":
+                REQ_LOG_FILENAME = LocalizationUtil.join(REQ_LOG_CONFIG_DIR, "centralRegistry.xml");
+                requestLog = null;
+                break;
 
-			case "bmh":
-				REQ_LOG_FILENAME = LocalizationUtil.join(REQ_LOG_CONFIG_DIR, "bmh.xml");
-				break;
+            case "bmh":
+                REQ_LOG_FILENAME = LocalizationUtil.join(REQ_LOG_CONFIG_DIR, "bmh.xml");
+                requestLog = null;
+                break;
 
-			default:
-				REQ_LOG_FILENAME = null;
-				break;
-		}
+            default:
+                REQ_LOG_FILENAME = null;
+                requestLog = null;
+                break;
+        }
 
-		/* Don't try to read config files for run modes we don't care about.  
-		 * Logging is disabled by default. */
-		if (REQ_LOG_FILENAME != null) {
-			try {
-	        	unmarshaller = JAXBContext.newInstance(RawRequestFilters.class).createUnmarshaller();
-	        } catch (JAXBException e) {
-	        	requestLog.error("Error creating context for RequestLogger", e);
-	            throw new ExceptionInInitializerError("Error creating context for RequestLogger");
-	        }
+        /* Don't try to read config files for run modes we don't care about.  
+         * Logging is disabled by default. */
+        if (REQ_LOG_FILENAME != null) {
+            try {
+                unmarshaller = JAXBContext.newInstance(RawRequestFilters.class).createUnmarshaller();
+            } catch (JAXBException e) {
+                requestLog.error("Error creating context for RequestLogger", e);
+                throw new ExceptionInInitializerError("Error creating context for RequestLogger");
+            }
 
-	        readConfigs();
-			PathManagerFactory.getPathManager().addLocalizationPathObserver(REQ_LOG_CONFIG_DIR, this);
-		}
-	}
+            readConfigs();
+            PathManagerFactory.getPathManager().addLocalizationPathObserver(REQ_LOG_CONFIG_DIR, this);
+        }
+    }
 
-	/**
-	 * @return RequestLogger instance.
-	 */
-	public static RequestLogger getInstance() {
-		return instance;
-	}
+    /**
+     * @return RequestLogger instance.
+     */
+    public static RequestLogger getInstance() {
+        return instance;
+    }
 
-	/**
-	 * Internal class for stringifying request objects to JSON.
-	 * Contains 3 attributes: workstation ID (wsid) as a string, the
-	 * request class as a string, and the raw deserialized request. 
-	 */
-	@JsonPropertyOrder({"wsid", "reqClass", "request"})
-	@SuppressWarnings("unused")
-	private class RequestWrapper {
-		private String wsid;
-		private String reqClass;
-		private IServerRequest request;
+    /**
+     * Internal class for stringifying request objects to JSON.
+     * Contains 3 attributes: workstation ID (wsid) as a string, the
+     * request class as a string, and the raw deserialized request. 
+     */
+    @JsonPropertyOrder({"wsid", "reqClass", "request"})
+    @SuppressWarnings("unused")
+    private class RequestWrapper {
+        private String wsid;
+        private String reqClass;
+        private IServerRequest request;
 
-		public RequestWrapper(String wsid, IServerRequest request) {
-			this.wsid = wsid;
-			this.reqClass = request.getClass().getName();
-			this.request = request;
-		}
+        public RequestWrapper(String wsid, IServerRequest request) {
+            this.wsid = wsid;
+            this.reqClass = request.getClass().getName();
+            this.request = request;
+        }
 
-		public String getWsid() {
-			return wsid;
-		}
+        public String getWsid() {
+            return wsid;
+        }
 
-		public String getReqClass() {
-			return reqClass;
-		}
+        public String getReqClass() {
+            return reqClass;
+        }
 
-		public IServerRequest getRequest() {
-			return request;
-		}
-	}
+        public IServerRequest getRequest() {
+            return request;
+        }
+    }
 
-	/**
-	 * Reads all configuration files.  Support localization override.
-	 */
-	private synchronized void readConfigs() {
-		IPathManager pathMgr = PathManagerFactory.getPathManager();
+    /**
+     * Reads all configuration files.  Support localization override.
+     */
+    private synchronized void readConfigs() {
+        IPathManager pathMgr = PathManagerFactory.getPathManager();
         LocalizationContext[] searchOrder = pathMgr.getLocalSearchHierarchy(LocalizationType.COMMON_STATIC);
 
         List<LocalizationContext> reverseOrder = Arrays.asList(Arrays.copyOf(searchOrder, searchOrder.length));
         Collections.reverse(reverseOrder);
         for (LocalizationContext ctx : reverseOrder) {
-        	File file = pathMgr.getFile(ctx, REQ_LOG_FILENAME);
-        	if (file != null && file.exists()) {
-        		try {
-        			RawRequestFilters rawFilters = (RawRequestFilters) unmarshaller.unmarshal(file);
-        			for (RawRequestFilter req : rawFilters.getFilters()) {
-        				if (filterMap.containsKey(req.getClassName())) {
-        					// This is an update to an existing filter
-        					// Put each attribute from the raw filter into the request filter
-        					Map<String, ClassAttribute> attrs = filterMap.get(req.getClassName())
-        															.getAttributeMap();
-        					for (ClassAttribute attr : req.getAttributes()) {
-        						attrs.put(attr.getName(), attr);
-        					}
-        				}
-    					filterMap.put(req.getClassName(), new RequestFilter(req));
-        			}
-        	        maxStringLength = rawFilters.getMaxFieldStringLength();
-        	        loggingEnabled = rawFilters.isLoggingEnabled();
-        	        inDiscoveryMode = rawFilters.isDiscoveryMode();
-        		} catch (Exception e) {
-        			e.printStackTrace();
-        		}
-        	}
+            File file = pathMgr.getFile(ctx, REQ_LOG_FILENAME);
+            if (file != null && file.exists()) {
+                try {
+                    RawRequestFilters rawFilters = (RawRequestFilters) unmarshaller.unmarshal(file);
+                    for (RawRequestFilter req : rawFilters.getFilters()) {
+                        if (filterMap.containsKey(req.getClassName())) {
+                            // This is an update to an existing filter
+                            // Put each attribute from the raw filter into the request filter
+                            Map<String, ClassAttribute> attrs = filterMap.get(req.getClassName())
+                                                                    .getAttributeMap();
+                            for (ClassAttribute attr : req.getAttributes()) {
+                                attrs.put(attr.getName(), attr);
+                            }
+                        }
+                        filterMap.put(req.getClassName(), new RequestFilter(req));
+                    }
+                    maxStringLength = rawFilters.getMaxFieldStringLength();
+                    loggingEnabled = rawFilters.isLoggingEnabled();
+                    inDiscoveryMode = rawFilters.isDiscoveryMode();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
         }
-	}
+    }
 
-	/**
-	 * Applies configured filters to a request object map.
-	 */
-	@SuppressWarnings("unchecked")
-	private void applyFilters(Map<String, Object> requestWrapperMap) {
-		Map<String, Object> requestMap = (Map<String, Object>) requestWrapperMap.get("request");
-		String reqClass = (String) requestWrapperMap.get("reqClass");
+    /**
+     * Applies configured filters to a request object map.
+     */
+    @SuppressWarnings("unchecked")
+    private void applyFilters(Map<String, Object> requestWrapperMap) {
+        Map<String, Object> requestMap = (Map<String, Object>) requestWrapperMap.get("request");
+        String reqClass = (String) requestWrapperMap.get("reqClass");
 
-		if (filterMap.containsKey(reqClass)) {
-			RequestFilter reqFilter = filterMap.get(requestWrapperMap.get("reqClass"));
-			Map<String, ClassAttribute> attrFilters = reqFilter.getAttributeMap();
-			Iterator<Map.Entry<String, Object>> iterator = requestMap.entrySet().iterator();
+        if (filterMap.containsKey(reqClass)) {
+            RequestFilter reqFilter = filterMap.get(requestWrapperMap.get("reqClass"));
+            Map<String, ClassAttribute> attrFilters = reqFilter.getAttributeMap();
+            Iterator<Map.Entry<String, Object>> iterator = requestMap.entrySet().iterator();
 
-			while (iterator.hasNext()) {
-				Map.Entry<String, Object> field = iterator.next();
-				String fieldKey = field.getKey();
+            while (iterator.hasNext()) {
+                Map.Entry<String, Object> field = iterator.next();
+                String fieldKey = field.getKey();
 
-				if (attrFilters.containsKey(fieldKey)) {
-					ClassAttribute attr = attrFilters.get(fieldKey);
-					if (!attr.isEnabled()) {
-						iterator.remove();
-						continue;
-					}
+                if (attrFilters.containsKey(fieldKey)) {
+                    ClassAttribute attr = attrFilters.get(fieldKey);
+                    if (!attr.isEnabled()) {
+                        iterator.remove();
+                        continue;
+                    }
 
-					if (attr.getMaxLength() > 0) {
-						String fieldValue = (String) field.getValue();
+                    if (attr.getMaxLength() > 0) {
+                        String fieldValue = (String) field.getValue();
 
-						if (fieldValue.length() > attr.getMaxLength()) {
-							field.setValue(fieldValue.substring(0, attr.getMaxLength()) + "...");
-						}
-					}
-				}
-			}
-		}
+                        if (fieldValue.length() > attr.getMaxLength()) {
+                            field.setValue(fieldValue.substring(0, attr.getMaxLength()) + "...");
+                        }
+                    }
+                }
+            }
+        }
 
-		truncateLongStrings(requestMap);
-	}
+        truncateLongStrings(requestMap);
+    }
 
-	/**
-	 * Recursively traverses an object map to truncate all Strings longer
-	 * than the configured maximum length.  Overrides attribute-specific settings.
-	 */
-	private void truncateLongStrings(Map<String, Object> jsonMap) {
-		for (String key : jsonMap.keySet()) {
-			Object obj = jsonMap.get(key);
+    /**
+     * Recursively traverses an object map to truncate all Strings longer
+     * than the configured maximum length.  Overrides attribute-specific settings.
+     */
+    private void truncateLongStrings(Map<String, Object> jsonMap) {
+        for (String key : jsonMap.keySet()) {
+            Object obj = jsonMap.get(key);
 
-			if (obj instanceof String) {
-				if ((maxStringLength > 0) && ((String) obj).length() > maxStringLength) {
-					String nstr = (String) obj;
+            if (obj instanceof String) {
+                if ((maxStringLength > 0) && ((String) obj).length() > maxStringLength) {
+                    String nstr = (String) obj;
 
-					jsonMap.put(key, nstr.substring(0, maxStringLength) + "...");
-				}
-			} else if (obj instanceof Map) {
-				@SuppressWarnings("unchecked")
-				Map<String, Object> mapObj = (Map<String, Object>) obj;
+                    jsonMap.put(key, nstr.substring(0, maxStringLength) + "...");
+                }
+            } else if (obj instanceof Map) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> mapObj = (Map<String, Object>) obj;
 
-				truncateLongStrings(mapObj);
-			} else if (obj instanceof ArrayList) {
-				List<?> objs = (ArrayList<?>) obj;
+                truncateLongStrings(mapObj);
+            } else if (obj instanceof ArrayList) {
+                List<?> objs = (ArrayList<?>) obj;
 
-				if (objs.size() > 0) {
-					if (objs.get(0) instanceof String) {
-						@SuppressWarnings("unchecked")
-						List<String> strArrayList = (ArrayList<String>) objs;
+                if (objs.size() > 0) {
+                    if (objs.get(0) instanceof String) {
+                        @SuppressWarnings("unchecked")
+                        List<String> strArrayList = (ArrayList<String>) objs;
 
-						for (int i = 0; i < strArrayList.size(); i++) {
-							if ((maxStringLength > 0) && (strArrayList.get(i).length() > maxStringLength)) {
-								strArrayList.set(i, strArrayList.get(i).substring(0, maxStringLength) + "...");
-							}
-						}
-					} else if (objs.get(0) instanceof Map) {
-						@SuppressWarnings("unchecked")
-						List<Map<String, Object>> mapArrayList = (ArrayList<Map<String, Object>>) obj;
+                        for (int i = 0; i < strArrayList.size(); i++) {
+                            if ((maxStringLength > 0) && (strArrayList.get(i).length() > maxStringLength)) {
+                                strArrayList.set(i, strArrayList.get(i).substring(0, maxStringLength) + "...");
+                            }
+                        }
+                    } else if (objs.get(0) instanceof Map) {
+                        @SuppressWarnings("unchecked")
+                        List<Map<String, Object>> mapArrayList = (ArrayList<Map<String, Object>>) obj;
 
-						for (int i = 0; i < mapArrayList.size(); i++) {
-							truncateLongStrings(mapArrayList.get(i));
-						}
-					}
-				}
-			}
-		}
-	}
+                        for (int i = 0; i < mapArrayList.size(); i++) {
+                            truncateLongStrings(mapArrayList.get(i));
+                        }
+                    }
+                }
+            }
+        }
+    }
 
-	/**
-	 * Logs request to the request log after applying configured filters. 
-	 * Request filtering and logging is done in a separate thread to allow
-	 * request processing to continue unimpeded by logging.
-	 * @param wsid
-	 * 	String containing the workstation ID.
-	 * @param request
-	 * 	Request object to be logged.
-	 */
-	public void logRequest(String wsid, IServerRequest request) {
-		if (!loggingEnabled) {
-			return;
-		}
+    /**
+     * Logs request to the request log after applying configured filters. 
+     * Request filtering and logging is done in a separate thread to allow
+     * request processing to continue unimpeded by logging.
+     * @param wsid
+     *     String containing the workstation ID.
+     * @param request
+     *     Request object to be logged.
+     */
+    public void logRequest(String wsid, IServerRequest request) {
+        if (!loggingEnabled) {
+            return;
+        }
 
-		new Thread(new Runnable() {
-			private String wsid;
-			private IServerRequest request;
+        new Thread(new Runnable() {
+            private String wsid;
+            private IServerRequest request;
 
-			public Runnable init(String wsid, IServerRequest request) {
-				this.wsid = wsid;
-				this.request = request;
-				return this;
-			}
+            public Runnable init(String wsid, IServerRequest request) {
+                this.wsid = wsid;
+                this.request = request;
+                return this;
+            }
 
-			@Override
-			public void run() {
-				try {
-					String clsStr = request.getClass().getName();
-					/*
-					 * Log the request if it's explicitly enabled, -OR-
-					 * if discovery Mode is set and the request class isn't in a config file.
-					 * This allows discovery mode to ignore requests that are explicitly disabled.
-					 */
-					if ((filterMap.containsKey(clsStr) && filterMap.get(clsStr).isEnabled())
-						|| (inDiscoveryMode && !filterMap.containsKey(clsStr))) {
-						Map<String, Object> requestWrapperMap = mapper.readValue(
-							mapper.writeValueAsString(new RequestWrapper(wsid, request)), 
-							new TypeReference<Map<String, Object>>(){}
-						);
+            @Override
+            public void run() {
+                try {
+                    String clsStr = request.getClass().getName();
+                    /*
+                     * Log the request if it's explicitly enabled, -OR-
+                     * if discovery Mode is set and the request class isn't in a config file.
+                     * This allows discovery mode to ignore requests that are explicitly disabled.
+                     */
+                    if ((filterMap.containsKey(clsStr) && filterMap.get(clsStr).isEnabled())
+                        || (inDiscoveryMode && !filterMap.containsKey(clsStr))) {
+                        Map<String, Object> requestWrapperMap = mapper.readValue(
+                            mapper.writeValueAsString(new RequestWrapper(wsid, request)), 
+                            new TypeReference<Map<String, Object>>(){}
+                        );
 
-						applyFilters(requestWrapperMap);
+                        applyFilters(requestWrapperMap);
 
-						requestLog.info(String.format("Request::: %s", mapper.writeValueAsString(requestWrapperMap)));
-					} else {
-						requestLog.debug(String.format("Filtered::: %s", clsStr));
-					}
-				} catch (Exception e) {
-					e.printStackTrace();
-					return;
-				}
-			}
-		}.init(wsid, request)).start();
-	}
+                        requestLog.info(String.format("Request::: %s", mapper.writeValueAsString(requestWrapperMap)));
+                    } else {
+                        requestLog.debug(String.format("Filtered::: %s", clsStr));
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return;
+                }
+            }
+        }.init(wsid, request)).start();
+    }
 
-	/**
-	 * Callback function triggered when a request configuration file has been modified.
-	 * @param file
-	 * 	ILocalizationFile object representation of the file that changed.
-	 */
-	@Override
-	public synchronized void fileChanged(ILocalizationFile file) {
-		filterMap.clear();
-		readConfigs();
-	}
+    /**
+     * Callback function triggered when a request configuration file has been modified.
+     * @param file
+     *     ILocalizationFile object representation of the file that changed.
+     */
+    @Override
+    public synchronized void fileChanged(ILocalizationFile file) {
+        filterMap.clear();
+        readConfigs();
+    }
 
-	/**
-	 * @return map of request filter objects
-	 */
-	public Map<String, RequestFilter> getFilterMap() {
-		return filterMap;
-	}
+    /**
+     * @return map of request filter objects
+     */
+    public Map<String, RequestFilter> getFilterMap() {
+        return filterMap;
+    }
 }

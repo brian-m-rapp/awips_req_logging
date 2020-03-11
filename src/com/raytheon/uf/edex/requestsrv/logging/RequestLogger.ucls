@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<class-diagram version="1.2.4" icons="true" always-add-relationships="false" generalizations="true" realizations="true" 
+  associations="true" dependencies="false" nesting-relationships="true" router="FAN">  
+  <class id="1" language="java" name="com.raytheon.uf.edex.requestsrv.logging.RawRequestFilter" 
+    project="awips_req_logging" 
+    file="/awips_req_logging/src/com/raytheon/uf/edex/requestsrv/logging/RawRequestFilter.java" binary="false" 
+    corner="BOTTOM_RIGHT">    
+    <position height="169" width="195" x="666" y="484"/>    
+    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
+      sort-features="false" accessors="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
+      <operations public="true" package="true" protected="true" private="true" static="true"/>    
+    </display>  
+  </class>  
+  <class id="2" language="java" name="com.raytheon.uf.edex.requestsrv.logging.RequestLogger" project="awips_req_logging" 
+    file="/awips_req_logging/src/com/raytheon/uf/edex/requestsrv/logging/RequestLogger.java" binary="false" 
+    corner="BOTTOM_RIGHT">    
+    <position height="385" width="251" x="116" y="49"/>    
+    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
+      sort-features="false" accessors="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
+      <operations public="true" package="true" protected="true" private="true" static="true"/>    
+    </display>  
+  </class>  
+  <class id="3" language="java" name="com.raytheon.uf.edex.requestsrv.logging.RawRequestFilters" 
+    project="awips_req_logging" 
+    file="/awips_req_logging/src/com/raytheon/uf/edex/requestsrv/logging/RawRequestFilters.java" binary="false" 
+    corner="BOTTOM_RIGHT">    
+    <position height="223" width="198" x="694" y="49"/>    
+    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
+      sort-features="false" accessors="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
+      <operations public="true" package="true" protected="true" private="true" static="true"/>    
+    </display>  
+  </class>  
+  <class id="4" language="java" name="com.raytheon.uf.edex.requestsrv.logging.RequestLogger.RequestWrapper" 
+    project="awips_req_logging" file="/awips_req_logging/src/com/raytheon/uf/edex/requestsrv/logging/RequestLogger.java" 
+    binary="false" corner="BOTTOM_RIGHT">    
+    <position height="187" width="225" x="116" y="484"/>    
+    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
+      sort-features="false" accessors="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
+      <operations public="true" package="true" protected="true" private="true" static="true"/>    
+    </display>  
+  </class>  
+  <class id="5" language="java" name="com.raytheon.uf.edex.requestsrv.logging.ClassAttribute" 
+    project="awips_req_logging" 
+    file="/awips_req_logging/src/com/raytheon/uf/edex/requestsrv/logging/ClassAttribute.java" binary="false" 
+    corner="BOTTOM_RIGHT">    
+    <position height="187" width="179" x="523" y="765"/>    
+    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
+      sort-features="false" accessors="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
+      <operations public="true" package="true" protected="true" private="true" static="true"/>    
+    </display>  
+  </class>  
+  <class id="6" language="java" name="com.raytheon.uf.edex.requestsrv.logging.TestMain" project="awips_req_logging" 
+    file="/awips_req_logging/src/com/raytheon/uf/edex/requestsrv/logging/TestMain.java" binary="false" 
+    corner="BOTTOM_RIGHT">    
+    <position height="115" width="237" x="417" y="49"/>    
+    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
+      sort-features="false" accessors="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
+      <operations public="true" package="true" protected="true" private="true" static="true"/>    
+    </display>  
+  </class>  
+  <class id="7" language="java" name="com.raytheon.uf.edex.requestsrv.logging.RequestFilter" project="awips_req_logging" 
+    file="/awips_req_logging/src/com/raytheon/uf/edex/requestsrv/logging/RequestFilter.java" binary="false" 
+    corner="BOTTOM_RIGHT">    
+    <position height="241" width="245" x="381" y="484"/>    
+    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
+      sort-features="false" accessors="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
+      <operations public="true" package="true" protected="true" private="true" static="true"/>    
+    </display>  
+  </class>  
+  <association id="8">    
+    <end type="SOURCE" refId="1" navigable="false">      
+      <attribute id="9" name="attributes"/>      
+      <multiplicity id="10" minimum="0" maximum="2147483647"/>    
+    </end>    
+    <end type="TARGET" refId="5" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <association id="11">    
+    <end type="SOURCE" refId="2" navigable="false">      
+      <attribute id="12" name="filterMap"/>      
+      <multiplicity id="13" minimum="0" maximum="2147483647"/>    
+    </end>    
+    <end type="TARGET" refId="7" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <nesting id="14">    
+    <end type="SOURCE" refId="2"/>    
+    <end type="TARGET" refId="4"/>  
+  </nesting>  
+  <association id="15">    
+    <end type="SOURCE" refId="7" navigable="false">      
+      <attribute id="16" name="attributeMap"/>      
+      <multiplicity id="17" minimum="0" maximum="2147483647"/>    
+    </end>    
+    <end type="TARGET" refId="5" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <association id="18">    
+    <end type="SOURCE" refId="3" navigable="false">      
+      <attribute id="19" name="rawFilters"/>      
+      <multiplicity id="20" minimum="0" maximum="2147483647"/>    
+    </end>    
+    <end type="TARGET" refId="1" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <association id="21">    
+    <end type="SOURCE" refId="2" navigable="false">      
+      <attribute id="22" name="instance"/>      
+      <multiplicity id="23" minimum="0" maximum="1"/>    
+    </end>    
+    <end type="TARGET" refId="2" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <classifier-display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
+    sort-features="false" accessors="true" visibility="true">    
+    <attributes public="true" package="true" protected="true" private="true" static="true"/>    
+    <operations public="true" package="true" protected="true" private="true" static="true"/>  
+  </classifier-display>  
+  <association-display labels="true" multiplicity="true"/>
+</class-diagram>

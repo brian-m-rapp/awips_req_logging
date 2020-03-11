@@ -19,82 +19,82 @@ import java.util.HashMap;
  * </pre>
  */
 public class RequestFilter {
-	private String className;
+    private String className;
 
-	private boolean enabled = true;	// Logging for each request type defaults to true
+    private boolean enabled = true;    // Logging for each request type defaults to true
 
-	private Map<String, ClassAttribute> attributeMap = new HashMap<>();
+    private Map<String, ClassAttribute> attributeMap = new HashMap<>();
 
-	/**
-	 * Constructor for RequestFilter.
-	 * @param req
-	 * 	Raw request filter to transform into RequestFilter.  
-	 */
-	public RequestFilter(RawRequestFilter req) {
-		className = req.getClassName();
-		enabled = req.isEnabled();
-		for (ClassAttribute attr : req.getAttributes()) {
-			addAttribute(attr);
-		}
-	}
+    /**
+     * Constructor for RequestFilter.
+     * @param req
+     *     Raw request filter to transform into RequestFilter.  
+     */
+    public RequestFilter(RawRequestFilter req) {
+        className = req.getClassName();
+        enabled = req.isEnabled();
+        for (ClassAttribute attr : req.getAttributes()) {
+            addAttribute(attr);
+        }
+    }
 
-	/**
-	 * Getter for class name
-	 * @return String containing fully qualified request class name
-	 */
-	public String getClassName() {
-		return className;
-	}
+    /**
+     * Getter for class name
+     * @return String containing fully qualified request class name
+     */
+    public String getClassName() {
+        return className;
+    }
 
-	/**
-	 * Setter for class name
-	 * @param className
-	 * 	String representing fully qualified request class name.
-	 */
-	public void setClassName(String className) {
-		this.className = className;
-	}
+    /**
+     * Setter for class name
+     * @param className
+     *     String representing fully qualified request class name.
+     */
+    public void setClassName(String className) {
+        this.className = className;
+    }
 
-	/**
-	 * Getter for request enabled flag
-	 * @return true if enabled; false if disabled
-	 */
-	public boolean isEnabled() {
-		return enabled;
-	}
+    /**
+     * Getter for request enabled flag
+     * @return true if enabled; false if disabled
+     */
+    public boolean isEnabled() {
+        return enabled;
+    }
 
-	/**
-	 * Setter for request enabled flag
-	 * @param enabled true to enable request; false to disable
-	 */
-	public void setEnabled(boolean enabled) {
-		this.enabled = enabled;
-	}
+    /**
+     * Setter for request enabled flag
+     * @param enabled true to enable request; false to disable
+     */
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
 
-	/**
-	 * 
-	 * @return Map with Attribute names as keys, ClassAttribute object as value
-	 */
-	public Map<String, ClassAttribute> getAttributeMap() {
-		return attributeMap;
-	}
+    /**
+     * 
+     * @return Map with Attribute names as keys, ClassAttribute object as value
+     */
+    public Map<String, ClassAttribute> getAttributeMap() {
+        return attributeMap;
+    }
 
-	/**
-	 * Add an attribute object to the request object
-	 * @param attribute ClassAttribute object to be added to the map
-	 */
-	public void addAttribute(ClassAttribute attribute) {
-		attributeMap.put(attribute.getName(), attribute);
-	}
+    /**
+     * Add an attribute object to the request object
+     * @param attribute ClassAttribute object to be added to the map
+     */
+    public void addAttribute(ClassAttribute attribute) {
+        attributeMap.put(attribute.getName(), attribute);
+    }
 
-	/**
-	 * Return the named attribute
-	 * @param attrName
-	 * 	attribute name
-	 * @return ClassAttribute
-	 * 	attribute object
-	 */
-	public ClassAttribute getAttribute(String attrName) {
-		return attributeMap.get(attrName);
-	}
+    /**
+     * Return the named attribute
+     * @param attrName
+     *     attribute name
+     * @return ClassAttribute
+     *     attribute object
+     */
+    public ClassAttribute getAttribute(String attrName) {
+        return attributeMap.get(attrName);
+    }
 }

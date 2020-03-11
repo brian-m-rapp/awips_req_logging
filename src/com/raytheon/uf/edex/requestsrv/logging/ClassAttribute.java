@@ -26,39 +26,38 @@ import javax.xml.bind.annotation.*;
 @XmlRootElement(name="attribute")
 @XmlAccessorType(XmlAccessType.NONE)
 public class ClassAttribute {
-	@XmlAttribute 
-	private String name;
+    @XmlAttribute 
+    private String name;
 
-	@XmlAttribute
-	private boolean enabled = true;
+    @XmlAttribute
+    private boolean enabled = true;
 
-	@XmlAttribute(name="maxlength")
-	private int maxLength = -1;
+    private int maxLength = -1;
 
-	/**
-	 * Getter for attribute name
-	 * @return String
-	 * 	name of attribute
-	 */
-	public String getName() {
-		return name;
-	}
+    /**
+     * Getter for attribute name
+     * @return String
+     *     name of attribute
+     */
+    public String getName() {
+        return name;
+    }
 
-	/**
-	 * Getter for attribute logging enabled flag
-	 * @return boolean
-	 * 	true if enabled; false if disabled
-	 */
-	public boolean isEnabled() {
-		return enabled;
-	}
+    /**
+     * Getter for attribute logging enabled flag
+     * @return boolean
+     *     true if enabled; false if disabled
+     */
+    public boolean isEnabled() {
+        return enabled;
+    }
 
-	/**
-	 * Getter for maximum string length
-	 * @return int
-	 * 	maximum length of the attribute value to write to log
-	 */
-	public int getMaxLength() {
-		return maxLength;
-	}
+    /**
+     * Getter for maximum string length
+     * @return int
+     *     maximum length of the attribute value to write to log
+     */
+    public int getMaxLength() {
+        return maxLength;
+    }
 }
