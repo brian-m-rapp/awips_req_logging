@@ -1,3 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?> 
+<!-- 
+	Refer to README.txt for documentation
+-->
 <requests maxFieldStringLength="150" loggingEnabled="false">
 </requests>
