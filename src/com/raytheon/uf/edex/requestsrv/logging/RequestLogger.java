@@ -189,17 +189,17 @@ public class RequestLogger implements ILocalizationPathObserver {
 
             case "registry":    // Data Delivery and Hazard Services
                 REQ_LOG_FILENAME = LocalizationUtil.join(REQ_LOG_CONFIG_DIR, "registry.xml");
-                requestLog = null;
+                requestLog = UFStatus.getNamedHandler("ThriftSrvRequestLogger");
                 break;
 
             case "centralRegistry":
                 REQ_LOG_FILENAME = LocalizationUtil.join(REQ_LOG_CONFIG_DIR, "centralRegistry.xml");
-                requestLog = null;
+                requestLog = UFStatus.getNamedHandler("ThriftSrvRequestLogger");
                 break;
 
             case "bmh":
                 REQ_LOG_FILENAME = LocalizationUtil.join(REQ_LOG_CONFIG_DIR, "bmh.xml");
-                requestLog = null;
+                requestLog = UFStatus.getNamedHandler("ThriftSrvRequestLogger");
                 break;
 
             default:
