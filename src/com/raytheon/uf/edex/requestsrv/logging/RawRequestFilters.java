@@ -22,7 +22,17 @@ import javax.xml.bind.annotation.*;
 @XmlRootElement(name="requests")
 @XmlAccessorType(XmlAccessType.NONE)
 public class RawRequestFilters {
-    final private int defaultMaxStringLength = 160;
+	/**
+	 * Default maximum length of request string attributes.  This is the default
+	 * value used if a length is not specified in the config file.
+	 */
+    private static final int defaultMaxStringLength = 160;
+
+    /**
+     * Default maximum JSON string length.  This is the default value used if a
+     * length is not specified in the config file.
+     */
+    private static final int defaultMaxJsonLength = 8192;
 
     @XmlAttribute
     private boolean loggingEnabled = true;
@@ -31,6 +41,9 @@ public class RawRequestFilters {
     private int maxFieldStringLength = defaultMaxStringLength;
 
     @XmlAttribute
+    private int maxJsonStringLength = defaultMaxJsonLength;
+
+	@XmlAttribute
     private boolean discoveryMode = false;
 
     @XmlElement(name="request")
@@ -53,6 +66,15 @@ public class RawRequestFilters {
     public int getMaxFieldStringLength() {
         return maxFieldStringLength;
     }
+
+    /**
+     * Getter for maximum length of JSON log strings
+     * @return int
+     *     maximum configured length of JSON log strings
+     */
+    public int getMaxJsonStringLength() {
+		return maxJsonStringLength;
+	}
 
     /**
      * Getter for request filters

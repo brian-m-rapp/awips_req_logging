@@ -107,12 +107,6 @@ import javax.xml.bind.Unmarshaller;
 public class RequestLogger implements ILocalizationPathObserver {
 
     /**
-     * Default maximum length of String attributes, if not specified
-     * in request_logging.xml.
-     */
-    private static final int DEFAULT_MAX_STRING_LENGTH = 80;
-
-    /**
      * Instance of thrift server request logging (edex-request-thriftsrv-<date>).
      */
     private static IUFStatusHandler requestLog;
@@ -151,9 +145,17 @@ public class RequestLogger implements ILocalizationPathObserver {
     private Map<String, RequestFilter> filterMap = new HashMap<>();
 
     /**
-     * Configured maximum String attribute logging length
+     * Configured maximum string attribute logging length.
      */
-    private int maxStringLength = DEFAULT_MAX_STRING_LENGTH;
+    private int maxStringLength;
+
+    /**
+     * Configured maximum length of the JSON log message.  JSON strings
+     * longer than this will be truncated.  This will cause parsing
+     * errors for JSON parsers, so external programs must be coded
+     * to ignore malformed JSON strings.
+     */
+    private int maxJsonLength;
 
     /**
      * If true, request logging is enabled; if false, request details are not logged.
@@ -175,7 +177,7 @@ public class RequestLogger implements ILocalizationPathObserver {
      * Private constructor for initializing the RequestLogger singleton instance.  Instantiates
      * the unmarshaller, reads the configuration files, and sets up a localization path observer.
      */
-    private RequestLogger() {
+    private RequestLogger() throws ExceptionInInitializerError {
         /*
          * Config file name is determined by which instance of EDEX this is.
          */
@@ -287,6 +289,7 @@ public class RequestLogger implements ILocalizationPathObserver {
                         filterMap.put(req.getClassName(), new RequestFilter(req));
                     }
                     maxStringLength = rawFilters.getMaxFieldStringLength();
+                    maxJsonLength = rawFilters.getMaxJsonStringLength();
                     loggingEnabled = rawFilters.isLoggingEnabled();
                     inDiscoveryMode = rawFilters.isDiscoveryMode();
                 } catch (Exception e) {
@@ -380,6 +383,18 @@ public class RequestLogger implements ILocalizationPathObserver {
     }
 
     /**
+     * Truncate JSON log messages longer than {@link maxJsonLength}
+     * when {@link maxJsonLength} >= 0.
+     */
+    private String truncateJsonMsg(String jsonStr) {
+    	if ((maxJsonLength > 0) && (jsonStr.length() > maxJsonLength)) {
+    		return jsonStr.substring(0, maxJsonLength) + "...";
+    	} else {
+    		return jsonStr;
+    	}
+    }
+
+    /**
      * Logs request to the request log after applying configured filters. 
      * Request filtering and logging is done in a separate thread to allow
      * request processing to continue unimpeded by logging.
@@ -421,7 +436,7 @@ public class RequestLogger implements ILocalizationPathObserver {
 
                         applyFilters(requestWrapperMap);
 
-                        requestLog.info(String.format("Request::: %s", mapper.writeValueAsString(requestWrapperMap)));
+                        requestLog.info(String.format("Request::: %s", truncateJsonMsg(mapper.writeValueAsString(requestWrapperMap))));
                     } else {
                         requestLog.debug(String.format("Filtered::: %s", clsStr));
                     }

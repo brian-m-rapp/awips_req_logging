@@ -27,7 +27,7 @@ Request logging can be disabled in one of two ways:
 Sample configuration:
 
     <?xml version='1.0' encoding='UTF-8'?> 
-    <requests maxFieldStringLength="150">
+    <requests loggingEnabled="true" maxFieldStringLength="150" maxJsonStringLength="8192">
         <request class="com.raytheon.uf.common.dataquery.requests.DbQueryRequest"/>
         <request class="com.raytheon.uf.common.dataquery.requests.DbQueryRequestSet"/>
         <request class="com.raytheon.uf.common.dataquery.requests.TimeQueryRequestSet"/>
@@ -72,6 +72,10 @@ all defined requests.
         attribute values.  Any string values longer will be truncated and 
         terminated with "...".
 
+    maxJsonStringLength (int, default: 8192) - Maximum length of the JSON log
+        string.  All JSON strings longer will be truncated at this value and 
+        terminated with "...".
+
 request (optional)
 -------
 This element describes the logging characteristics for a single request class.
@@ -84,7 +88,8 @@ element, below).
     className (String) - Fully qualified request class name.
 
     enabled (boolean, default: "true") - If not present or explicitly set to 
-        "true", requests of this type will be logged.
+        "true", requests of this type will be logged.  To disable logging of
+        this request class, set to "false".
 
 attributes
 ----------
