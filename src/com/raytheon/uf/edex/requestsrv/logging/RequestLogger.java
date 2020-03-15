@@ -109,7 +109,10 @@ public class RequestLogger implements ILocalizationPathObserver {
     /**
      * Instance of thrift server request logging (edex-request-thriftsrv-<date>).
      */
-    private static IUFStatusHandler requestLog;
+    private static IUFStatusHandler requestLog = null;
+
+    private static final IUFStatusHandler statusHandler = 
+    		UFStatus.getHandler(RequestLogger.class);
 
     /**
      * Edex run mode for determining config file path
@@ -178,10 +181,15 @@ public class RequestLogger implements ILocalizationPathObserver {
      * the unmarshaller, reads the configuration files, and sets up a localization path observer.
      */
     private RequestLogger() throws ExceptionInInitializerError {
+    	if (edexRunMode == null) {
+    		return;		// This will happen if edex.run.mode is not defined on the command 
+    					// line, which should never happen since it's required by EDEX.
+    	}
+
         /*
          * Config file name is determined by which instance of EDEX this is.
          */
-        switch (edexRunMode) {
+    	switch (edexRunMode) {
             case "request":        // Request server
                 REQ_LOG_FILENAME = LocalizationUtil.join(REQ_LOG_CONFIG_DIR, "request.xml");
                 requestLog = UFStatus.getNamedHandler("ThriftSrvRequestLogger");
@@ -293,7 +301,7 @@ public class RequestLogger implements ILocalizationPathObserver {
                     loggingEnabled = rawFilters.isLoggingEnabled();
                     inDiscoveryMode = rawFilters.isDiscoveryMode();
                 } catch (Exception e) {
-                    e.printStackTrace();
+                	statusHandler.error("Error parsing RequestLogger config file "+file.getName(), e);
                 }
             }
         }
@@ -441,7 +449,7 @@ public class RequestLogger implements ILocalizationPathObserver {
                         requestLog.debug(String.format("Filtered::: %s", clsStr));
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                	statusHandler.error("Error logging request", e);
                     return;
                 }
             }
