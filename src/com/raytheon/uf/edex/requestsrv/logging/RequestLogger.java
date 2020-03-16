@@ -12,10 +12,12 @@ import com.raytheon.uf.common.localization.LocalizationContext.LocalizationType;
 import com.raytheon.uf.common.localization.LocalizationUtil;
 import com.raytheon.uf.common.localization.PathManagerFactory;
 import com.raytheon.uf.common.serialization.comm.IServerRequest;
+import com.raytheon.uf.common.serialization.SingleTypeJAXBManager;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 
 import java.io.File;
+import java.io.InputStream;
 import java.util.Iterator;
 import java.util.Map; 
 import java.util.HashMap;
@@ -112,7 +114,7 @@ public class RequestLogger implements ILocalizationPathObserver {
     private static IUFStatusHandler requestLog = null;
 
     private static final IUFStatusHandler statusHandler = 
-    		UFStatus.getHandler(RequestLogger.class);
+            UFStatus.getHandler(RequestLogger.class);
 
     /**
      * Edex run mode for determining config file path
@@ -174,22 +176,22 @@ public class RequestLogger implements ILocalizationPathObserver {
     /**
      * Object for transforming XML configuration into POJOs.
      */
-    private Unmarshaller unmarshaller;
+    private SingleTypeJAXBManager<RawRequestFilters> jaxbManager;
 
     /**
      * Private constructor for initializing the RequestLogger singleton instance.  Instantiates
      * the unmarshaller, reads the configuration files, and sets up a localization path observer.
      */
     private RequestLogger() throws ExceptionInInitializerError {
-    	if (edexRunMode == null) {
-    		return;		// This will happen if edex.run.mode is not defined on the command 
-    					// line, which should never happen since it's required by EDEX.
-    	}
+        if (edexRunMode == null) {
+            return;     // This will happen if edex.run.mode is not defined on the command 
+                        // line, which should never happen since it's required by EDEX.
+        }
 
         /*
          * Config file name is determined by which instance of EDEX this is.
          */
-    	switch (edexRunMode) {
+        switch (edexRunMode) {
             case "request":        // Request server
                 REQ_LOG_FILENAME = LocalizationUtil.join(REQ_LOG_CONFIG_DIR, "request.xml");
                 requestLog = UFStatus.getNamedHandler("ThriftSrvRequestLogger");
@@ -220,7 +222,8 @@ public class RequestLogger implements ILocalizationPathObserver {
          * Logging is disabled by default. */
         if (REQ_LOG_FILENAME != null) {
             try {
-                unmarshaller = JAXBContext.newInstance(RawRequestFilters.class).createUnmarshaller();
+                //unmarshaller = JAXBContext.newInstance(RawRequestFilters.class).createUnmarshaller();
+                jaxbManager = new SingleTypeJAXBManager<>(RawRequestFilters.class);
             } catch (JAXBException e) {
                 if (requestLog != null)
                     requestLog.error("Error creating context for RequestLogger", e);
@@ -280,10 +283,10 @@ public class RequestLogger implements ILocalizationPathObserver {
         List<LocalizationContext> reverseOrder = Arrays.asList(Arrays.copyOf(searchOrder, searchOrder.length));
         Collections.reverse(reverseOrder);
         for (LocalizationContext ctx : reverseOrder) {
-            File file = pathMgr.getFile(ctx, REQ_LOG_FILENAME);
-            if (file != null && file.exists()) {
-                try {
-                    RawRequestFilters rawFilters = (RawRequestFilters) unmarshaller.unmarshal(file);
+            ILocalizationFile lf = pathMgr.getLocalizationFile(ctx, REQ_LOG_FILENAME);
+            if (lf != null & lf.exists()) {
+                try (InputStream in = lf.openInputStream()) {
+                    RawRequestFilters rawFilters = jaxbManager.unmarshalFromInputStream(in);
                     for (RawRequestFilter req : rawFilters.getFilters()) {
                         if (filterMap.containsKey(req.getClassName())) {
                             // This is an update to an existing filter
@@ -294,14 +297,16 @@ public class RequestLogger implements ILocalizationPathObserver {
                                 attrs.put(attr.getName(), attr);
                             }
                         }
-                        filterMap.put(req.getClassName(), new RequestFilter(req));
+
+                    filterMap.put(req.getClassName(), new RequestFilter(req));
                     }
+
                     maxStringLength = rawFilters.getMaxFieldStringLength();
                     maxJsonLength = rawFilters.getMaxJsonStringLength();
                     loggingEnabled = rawFilters.isLoggingEnabled();
                     inDiscoveryMode = rawFilters.isDiscoveryMode();
                 } catch (Exception e) {
-                	statusHandler.error("Error parsing RequestLogger config file "+file.getName(), e);
+                    statusHandler.error("Error parsing RequestLogger config file "+lf, e);
                 }
             }
         }
@@ -395,11 +400,11 @@ public class RequestLogger implements ILocalizationPathObserver {
      * when {@link maxJsonLength} >= 0.
      */
     private String truncateJsonMsg(String jsonStr) {
-    	if ((maxJsonLength > 0) && (jsonStr.length() > maxJsonLength)) {
-    		return jsonStr.substring(0, maxJsonLength) + "...";
-    	} else {
-    		return jsonStr;
-    	}
+        if ((maxJsonLength > 0) && (jsonStr.length() > maxJsonLength)) {
+            return jsonStr.substring(0, maxJsonLength) + "...";
+        } else {
+            return jsonStr;
+        }
     }
 
     /**
@@ -449,7 +454,7 @@ public class RequestLogger implements ILocalizationPathObserver {
                         requestLog.debug(String.format("Filtered::: %s", clsStr));
                     }
                 } catch (Exception e) {
-                	statusHandler.error("Error logging request", e);
+                    statusHandler.error("Error logging request", e);
                     return;
                 }
             }
