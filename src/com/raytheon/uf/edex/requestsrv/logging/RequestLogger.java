@@ -16,7 +16,6 @@ import com.raytheon.uf.common.serialization.SingleTypeJAXBManager;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 
-import java.io.File;
 import java.io.InputStream;
 import java.util.Iterator;
 import java.util.Map; 
@@ -25,10 +24,6 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
 
 /**
  * Class for logging request ({@link IServerRequest}) details.  Implemented using
@@ -224,7 +219,7 @@ public class RequestLogger implements ILocalizationPathObserver {
             try {
                 //unmarshaller = JAXBContext.newInstance(RawRequestFilters.class).createUnmarshaller();
                 jaxbManager = new SingleTypeJAXBManager<>(RawRequestFilters.class);
-            } catch (JAXBException e) {
+            } catch (Exception e) {
                 if (requestLog != null)
                     requestLog.error("Error creating context for RequestLogger", e);
                 throw new ExceptionInInitializerError("Error creating context for RequestLogger");
