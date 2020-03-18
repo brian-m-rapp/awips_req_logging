@@ -219,6 +219,10 @@ public class RequestLogger implements ILocalizationPathObserver {
         PathManagerFactory.getPathManager().addLocalizationPathObserver(REQ_LOG_CONFIG_DIR, this);
     }
 
+    /**
+     * Persistent thread for processing requests for logging.  The thread is 
+     * only started if request logging is enabled.  It blocks on empty queue
+     */
     class LoggerThread extends Thread {
         public LoggerThread() {
             setDaemon(true);
@@ -233,6 +237,7 @@ public class RequestLogger implements ILocalizationPathObserver {
                     wrapper = requestQ.take();
                 } catch (InterruptedException e) {
                     requestLog.info("LoggerThread exiting");
+                    threadRunning = false;
                     break;
                 }
 
@@ -254,6 +259,101 @@ public class RequestLogger implements ILocalizationPathObserver {
                 } else {
                     requestLog.debug(String.format("Filtered::: %s", clsStr));
                 }
+            }
+        }
+
+        /**
+         * Applies configured filters to a request object map.
+         */
+        @SuppressWarnings("unchecked")
+        private void applyFilters(Map<String, Object> requestWrapperMap) {
+            Map<String, Object> requestMap = (Map<String, Object>) requestWrapperMap.get("request");
+            String reqClass = (String) requestWrapperMap.get("reqClass");
+
+            if (filterMap.containsKey(reqClass)) {
+                RequestFilter reqFilter = filterMap.get(requestWrapperMap.get("reqClass"));
+                Map<String, ClassAttribute> attrFilters = reqFilter.getAttributeMap();
+                Iterator<Map.Entry<String, Object>> iterator = requestMap.entrySet().iterator();
+
+                while (iterator.hasNext()) {
+                    Map.Entry<String, Object> field = iterator.next();
+                    String fieldKey = field.getKey();
+
+                    if (attrFilters.containsKey(fieldKey)) {
+                        ClassAttribute attr = attrFilters.get(fieldKey);
+                        if (!attr.isEnabled()) {
+                            iterator.remove();
+                            continue;
+                        }
+
+                        if (attr.getMaxLength() > 0) {
+                            String fieldValue = (String) field.getValue();
+
+                            if (fieldValue.length() > attr.getMaxLength()) {
+                                field.setValue(fieldValue.substring(0, attr.getMaxLength()) + "...");
+                            }
+                        }
+                    }
+                }
+            }
+
+            truncateLongStrings(requestMap);
+        }
+
+        /**
+         * Recursively traverses an object map to truncate all Strings longer
+         * than the configured maximum length.  Overrides attribute-specific settings.
+         */
+        private void truncateLongStrings(Map<String, Object> jsonMap) {
+            for (String key : jsonMap.keySet()) {
+                Object obj = jsonMap.get(key);
+
+                if (obj instanceof String) {
+                    if ((maxStringLength > 0) && ((String) obj).length() > maxStringLength) {
+                        String nstr = (String) obj;
+
+                        jsonMap.put(key, nstr.substring(0, maxStringLength) + "...");
+                    }
+                } else if (obj instanceof Map) {
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> mapObj = (Map<String, Object>) obj;
+
+                    truncateLongStrings(mapObj);
+                } else if (obj instanceof ArrayList) {
+                    List<?> objs = (ArrayList<?>) obj;
+
+                    if (objs.size() > 0) {
+                        if (objs.get(0) instanceof String) {
+                            @SuppressWarnings("unchecked")
+                            List<String> strArrayList = (ArrayList<String>) objs;
+
+                            for (int i = 0; i < strArrayList.size(); i++) {
+                                if ((maxStringLength > 0) && (strArrayList.get(i).length() > maxStringLength)) {
+                                    strArrayList.set(i, strArrayList.get(i).substring(0, maxStringLength) + "...");
+                                }
+                            }
+                        } else if (objs.get(0) instanceof Map) {
+                            @SuppressWarnings("unchecked")
+                            List<Map<String, Object>> mapArrayList = (ArrayList<Map<String, Object>>) obj;
+
+                            for (int i = 0; i < mapArrayList.size(); i++) {
+                                truncateLongStrings(mapArrayList.get(i));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        /**
+         * Truncate JSON log messages longer than {@link maxJsonLength}
+         * when {@link maxJsonLength} >= 0.
+         */
+        private String truncateJsonMsg(String jsonStr) {
+            if ((maxJsonLength > 0) && (jsonStr.length() > maxJsonLength)) {
+                return jsonStr.substring(0, maxJsonLength) + "...";
+            } else {
+                return jsonStr;
             }
         }
     }
@@ -346,101 +446,6 @@ public class RequestLogger implements ILocalizationPathObserver {
     }
 
     /**
-     * Applies configured filters to a request object map.
-     */
-    @SuppressWarnings("unchecked")
-    private void applyFilters(Map<String, Object> requestWrapperMap) {
-        Map<String, Object> requestMap = (Map<String, Object>) requestWrapperMap.get("request");
-        String reqClass = (String) requestWrapperMap.get("reqClass");
-
-        if (filterMap.containsKey(reqClass)) {
-            RequestFilter reqFilter = filterMap.get(requestWrapperMap.get("reqClass"));
-            Map<String, ClassAttribute> attrFilters = reqFilter.getAttributeMap();
-            Iterator<Map.Entry<String, Object>> iterator = requestMap.entrySet().iterator();
-
-            while (iterator.hasNext()) {
-                Map.Entry<String, Object> field = iterator.next();
-                String fieldKey = field.getKey();
-
-                if (attrFilters.containsKey(fieldKey)) {
-                    ClassAttribute attr = attrFilters.get(fieldKey);
-                    if (!attr.isEnabled()) {
-                        iterator.remove();
-                        continue;
-                    }
-
-                    if (attr.getMaxLength() > 0) {
-                        String fieldValue = (String) field.getValue();
-
-                        if (fieldValue.length() > attr.getMaxLength()) {
-                            field.setValue(fieldValue.substring(0, attr.getMaxLength()) + "...");
-                        }
-                    }
-                }
-            }
-        }
-
-        truncateLongStrings(requestMap);
-    }
-
-    /**
-     * Recursively traverses an object map to truncate all Strings longer
-     * than the configured maximum length.  Overrides attribute-specific settings.
-     */
-    private void truncateLongStrings(Map<String, Object> jsonMap) {
-        for (String key : jsonMap.keySet()) {
-            Object obj = jsonMap.get(key);
-
-            if (obj instanceof String) {
-                if ((maxStringLength > 0) && ((String) obj).length() > maxStringLength) {
-                    String nstr = (String) obj;
-
-                    jsonMap.put(key, nstr.substring(0, maxStringLength) + "...");
-                }
-            } else if (obj instanceof Map) {
-                @SuppressWarnings("unchecked")
-                Map<String, Object> mapObj = (Map<String, Object>) obj;
-
-                truncateLongStrings(mapObj);
-            } else if (obj instanceof ArrayList) {
-                List<?> objs = (ArrayList<?>) obj;
-
-                if (objs.size() > 0) {
-                    if (objs.get(0) instanceof String) {
-                        @SuppressWarnings("unchecked")
-                        List<String> strArrayList = (ArrayList<String>) objs;
-
-                        for (int i = 0; i < strArrayList.size(); i++) {
-                            if ((maxStringLength > 0) && (strArrayList.get(i).length() > maxStringLength)) {
-                                strArrayList.set(i, strArrayList.get(i).substring(0, maxStringLength) + "...");
-                            }
-                        }
-                    } else if (objs.get(0) instanceof Map) {
-                        @SuppressWarnings("unchecked")
-                        List<Map<String, Object>> mapArrayList = (ArrayList<Map<String, Object>>) obj;
-
-                        for (int i = 0; i < mapArrayList.size(); i++) {
-                            truncateLongStrings(mapArrayList.get(i));
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Truncate JSON log messages longer than {@link maxJsonLength}
-     * when {@link maxJsonLength} >= 0.
-     */
-    private String truncateJsonMsg(String jsonStr) {
-        if ((maxJsonLength > 0) && (jsonStr.length() > maxJsonLength)) {
-            return jsonStr.substring(0, maxJsonLength) + "...";
-        } else {
-            return jsonStr;
-        }
-    }
-
-    /**
      * Logs request to the request log after applying configured filters. 
      * Request filtering and logging is done in a separate thread to allow
      * request processing to continue unimpeded by logging.
@@ -450,12 +455,12 @@ public class RequestLogger implements ILocalizationPathObserver {
      *     Request object to be logged.
      */
     public void logRequest(String wsid, IServerRequest request) {
-        if (!loggingEnabled || (requestLog == null)) {
+        if (!loggingEnabled) {
             return;
         }
 
         if (!requestQ.offer(new RequestWrapper(wsid, request))) {
-            
+            requestLog.warn(String.format("requestQ full (%d)", requestQ.size()));
         }
     }
 
@@ -466,6 +471,7 @@ public class RequestLogger implements ILocalizationPathObserver {
      */
     @Override
     public synchronized void fileChanged(ILocalizationFile file) {
+        requestLog.info("Config file changed: "+file);
         filterMap.clear();
         readConfigs();
     }
