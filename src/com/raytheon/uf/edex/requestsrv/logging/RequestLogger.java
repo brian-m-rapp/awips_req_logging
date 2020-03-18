@@ -414,8 +414,8 @@ public class RequestLogger implements ILocalizationPathObserver {
                         if (filterMap.containsKey(req.getClassName())) {
                             // This is an update to an existing filter
                             // Put each attribute from the raw filter into the request filter
-                            Map<String, ClassAttribute> attrs = filterMap.get(req.getClassName())
-                                                                    .getAttributeMap();
+                            Map<String, ClassAttribute> attrs = 
+                                    filterMap.get(req.getClassName()).getAttributeMap();
                             for (ClassAttribute attr : req.getAttributes()) {
                                 attrs.put(attr.getName(), attr);
                             }
