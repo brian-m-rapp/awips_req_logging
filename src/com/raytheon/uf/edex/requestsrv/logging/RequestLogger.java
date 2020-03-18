@@ -242,22 +242,24 @@ public class RequestLogger implements ILocalizationPathObserver {
                 }
 
                 String clsStr = wrapper.getReqClass();
-                if ((filterMap.containsKey(clsStr) && filterMap.get(clsStr).isEnabled())
-                   || (inDiscoveryMode && !filterMap.containsKey(clsStr))) {
-
-                    try {
-                        Map<String, Object> requestWrapperMap = mapper.readValue(
-                                mapper.writeValueAsString(wrapper), 
-                                new TypeReference<Map<String, Object>>(){}
-                        );
-                        applyFilters(requestWrapperMap);
-
-                        requestLog.info(String.format("Request::: %s", truncateJsonMsg(mapper.writeValueAsString(requestWrapperMap))));
-                    } catch (Exception e) {
-                        statusHandler.error("Error logging request", e);
+                synchronized (filterMap) {
+                    if ((filterMap.containsKey(clsStr) && filterMap.get(clsStr).isEnabled())
+                       || (inDiscoveryMode && !filterMap.containsKey(clsStr))) {
+    
+                        try {
+                            Map<String, Object> requestWrapperMap = mapper.readValue(
+                                    mapper.writeValueAsString(wrapper), 
+                                    new TypeReference<Map<String, Object>>(){}
+                            );
+                            applyFilters(requestWrapperMap);
+    
+                            requestLog.info(String.format("Request::: %s", truncateJsonMsg(mapper.writeValueAsString(requestWrapperMap))));
+                        } catch (Exception e) {
+                            statusHandler.error("Error logging request", e);
+                        }
+                    } else {
+                        requestLog.debug(String.format("Filtered::: %s", clsStr));
                     }
-                } else {
-                    requestLog.debug(String.format("Filtered::: %s", clsStr));
                 }
             }
         }
@@ -399,7 +401,7 @@ public class RequestLogger implements ILocalizationPathObserver {
     /**
      * Reads all configuration files.  Support localization override.
      */
-    private synchronized void readConfigs() {
+    private void readConfigs() {
         IPathManager pathMgr = PathManagerFactory.getPathManager();
         LocalizationContext[] searchOrder = pathMgr.getLocalSearchHierarchy(LocalizationType.COMMON_STATIC);
 
@@ -470,10 +472,12 @@ public class RequestLogger implements ILocalizationPathObserver {
      *     ILocalizationFile object representation of the file that changed.
      */
     @Override
-    public synchronized void fileChanged(ILocalizationFile file) {
+    public void fileChanged(ILocalizationFile file) {
         requestLog.info("Config file changed: "+file);
-        filterMap.clear();
-        readConfigs();
+        synchronized (filterMap) {
+            filterMap.clear();
+            readConfigs();
+        }
     }
 
     /**
