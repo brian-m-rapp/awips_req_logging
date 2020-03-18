@@ -464,8 +464,6 @@ public class RequestLogger implements ILocalizationPathObserver {
 
         if (!requestQ.offer(new RequestWrapper(wsid, request))) {
             requestLog.warn(String.format("requestQ full (%d)", requestQ.size()));
-        } else {
-            requestLog.info("Request queue size: "+requestQ.size());
         }
     }
 
