@@ -51,5 +51,10 @@ public class TestMain {
         reqLogger.logRequest(wsid, reqSet);
         endTime = System.currentTimeMillis();
         System.out.format("Execution time %d ms\n", endTime-startTime);
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            
+        }
     }
 }

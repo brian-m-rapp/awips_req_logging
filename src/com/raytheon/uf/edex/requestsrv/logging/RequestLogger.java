@@ -17,6 +17,8 @@ import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 
 import java.io.InputStream;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.Iterator;
 import java.util.Map; 
 import java.util.HashMap;
@@ -106,7 +108,8 @@ public class RequestLogger implements ILocalizationPathObserver {
     /**
      * Instance of thrift server request logging (edex-request-thriftsrv-<date>).
      */
-    private static IUFStatusHandler requestLog = null;
+    private static final IUFStatusHandler requestLog = 
+            UFStatus.getNamedHandler("ThriftSrvRequestLogger");
 
     private static final IUFStatusHandler statusHandler = 
             UFStatus.getHandler(RequestLogger.class);
@@ -125,6 +128,13 @@ public class RequestLogger implements ILocalizationPathObserver {
      * Name of request configuration file.  Determined by EDEX run mode.
      */
     private static String REQ_LOG_FILENAME = null;
+
+    private static final int QUEUE_SIZE = 50;
+
+    /**
+     * Queue for logging requests
+     */
+    private static BlockingQueue<RequestWrapper> requestQ = null;
 
     /**
      * Singleton instance of the RequestLogger.
@@ -174,59 +184,77 @@ public class RequestLogger implements ILocalizationPathObserver {
     private SingleTypeJAXBManager<RawRequestFilters> jaxbManager;
 
     /**
+     * Processing thread for asynchronously logging requests
+     */
+    private static Thread loggingThread = null;
+
+    /**
+     * Set when the processing thread is started
+     */
+    private static volatile boolean threadRunning = false;
+
+    /**
      * Private constructor for initializing the RequestLogger singleton instance.  Instantiates
-     * the unmarshaller, reads the configuration files, and sets up a localization path observer.
+     * the JAXB manager, reads the configuration files, sets up a localization path observer, 
+     * initializes the queue, and starts the processor thread.
      */
     private RequestLogger() throws ExceptionInInitializerError {
-        if (edexRunMode == null) {
-            return;     // This will happen if edex.run.mode is not defined on the command 
-                        // line, which should never happen since it's required by EDEX.
+        if (edexRunMode == null) { // This will happen if edex.run.mode is not defined on the command
+            return;                // line, which should never happen since it's required by EDEX. 
         }
 
         /*
          * Config file name is determined by which instance of EDEX this is.
          */
-        switch (edexRunMode) {
-            case "request":        // Request server
-                REQ_LOG_FILENAME = LocalizationUtil.join(REQ_LOG_CONFIG_DIR, "request.xml");
-                requestLog = UFStatus.getNamedHandler("ThriftSrvRequestLogger");
-                break;
+        REQ_LOG_FILENAME = LocalizationUtil.join(REQ_LOG_CONFIG_DIR, edexRunMode+".xml");
 
-            case "registry":    // Data Delivery and Hazard Services
-                REQ_LOG_FILENAME = LocalizationUtil.join(REQ_LOG_CONFIG_DIR, "registry.xml");
-                requestLog = UFStatus.getNamedHandler("ThriftSrvRequestLogger");
-                break;
-
-            case "centralRegistry":
-                REQ_LOG_FILENAME = LocalizationUtil.join(REQ_LOG_CONFIG_DIR, "centralRegistry.xml");
-                requestLog = UFStatus.getNamedHandler("ThriftSrvRequestLogger");
-                break;
-
-            case "bmh":
-                REQ_LOG_FILENAME = LocalizationUtil.join(REQ_LOG_CONFIG_DIR, "bmh.xml");
-                requestLog = UFStatus.getNamedHandler("ThriftSrvRequestLogger");
-                break;
-
-            default:
-                REQ_LOG_FILENAME = null;
-                requestLog = null;
-                break;
+        try {
+            jaxbManager = new SingleTypeJAXBManager<>(RawRequestFilters.class);
+        } catch (Exception e) {
+            requestLog.error("Error creating context for RequestLogger", e);
+            throw new ExceptionInInitializerError("Error creating context for RequestLogger");
         }
 
-        /* Don't try to read config files for run modes we don't care about.  
-         * Logging is disabled by default. */
-        if (REQ_LOG_FILENAME != null) {
-            try {
-                //unmarshaller = JAXBContext.newInstance(RawRequestFilters.class).createUnmarshaller();
-                jaxbManager = new SingleTypeJAXBManager<>(RawRequestFilters.class);
-            } catch (Exception e) {
-                if (requestLog != null)
-                    requestLog.error("Error creating context for RequestLogger", e);
-                throw new ExceptionInInitializerError("Error creating context for RequestLogger");
-            }
+        readConfigs();
+        PathManagerFactory.getPathManager().addLocalizationPathObserver(REQ_LOG_CONFIG_DIR, this);
+    }
 
-            readConfigs();
-            PathManagerFactory.getPathManager().addLocalizationPathObserver(REQ_LOG_CONFIG_DIR, this);
+    class LoggerThread extends Thread {
+        public LoggerThread() {
+            setDaemon(true);
+        }
+
+        public void run() {
+            requestLog.info("LoggerThread started");
+            threadRunning = true;
+            while (true) {
+                RequestWrapper wrapper = null;
+                try {
+                    wrapper = requestQ.take();
+                } catch (InterruptedException e) {
+                    requestLog.info("LoggerThread exiting");
+                    break;
+                }
+
+                String clsStr = wrapper.getReqClass();
+                if ((filterMap.containsKey(clsStr) && filterMap.get(clsStr).isEnabled())
+                   || (inDiscoveryMode && !filterMap.containsKey(clsStr))) {
+
+                    try {
+                        Map<String, Object> requestWrapperMap = mapper.readValue(
+                                mapper.writeValueAsString(wrapper), 
+                                new TypeReference<Map<String, Object>>(){}
+                        );
+                        applyFilters(requestWrapperMap);
+
+                        requestLog.info(String.format("Request::: %s", truncateJsonMsg(mapper.writeValueAsString(requestWrapperMap))));
+                    } catch (Exception e) {
+                        statusHandler.error("Error logging request", e);
+                    }
+                } else {
+                    requestLog.debug(String.format("Filtered::: %s", clsStr));
+                }
+            }
         }
     }
 
@@ -238,7 +266,7 @@ public class RequestLogger implements ILocalizationPathObserver {
     }
 
     /**
-     * Internal class for stringifying request objects to JSON.
+     * Class for stringifying request objects to JSON.
      * Contains 3 attributes: workstation ID (wsid) as a string, the
      * request class as a string, and the raw deserialized request. 
      */
@@ -304,6 +332,16 @@ public class RequestLogger implements ILocalizationPathObserver {
                     statusHandler.error("Error parsing RequestLogger config file "+lf, e);
                 }
             }
+        }
+
+        if (loggingEnabled && !threadRunning) {
+            // Start request log processing thread if it's not already running
+            if (requestQ == null) {
+                requestQ = new LinkedBlockingQueue<>(QUEUE_SIZE);
+            }
+
+            loggingThread = new LoggerThread();
+            loggingThread.start();
         }
     }
 
@@ -416,44 +454,9 @@ public class RequestLogger implements ILocalizationPathObserver {
             return;
         }
 
-        new Thread(new Runnable() {
-            private String wsid;
-            private IServerRequest request;
-
-            public Runnable init(String wsid, IServerRequest request) {
-                this.wsid = wsid;
-                this.request = request;
-                return this;
-            }
-
-            @Override
-            public void run() {
-                try {
-                    String clsStr = request.getClass().getName();
-                    /*
-                     * Log the request if it's explicitly enabled, -OR-
-                     * if discovery Mode is set and the request class isn't in a config file.
-                     * This allows discovery mode to ignore requests that are explicitly disabled.
-                     */
-                    if ((filterMap.containsKey(clsStr) && filterMap.get(clsStr).isEnabled())
-                        || (inDiscoveryMode && !filterMap.containsKey(clsStr))) {
-                        Map<String, Object> requestWrapperMap = mapper.readValue(
-                            mapper.writeValueAsString(new RequestWrapper(wsid, request)), 
-                            new TypeReference<Map<String, Object>>(){}
-                        );
-
-                        applyFilters(requestWrapperMap);
-
-                        requestLog.info(String.format("Request::: %s", truncateJsonMsg(mapper.writeValueAsString(requestWrapperMap))));
-                    } else {
-                        requestLog.debug(String.format("Filtered::: %s", clsStr));
-                    }
-                } catch (Exception e) {
-                    statusHandler.error("Error logging request", e);
-                    return;
-                }
-            }
-        }.init(wsid, request)).start();
+        if (!requestQ.offer(new RequestWrapper(wsid, request))) {
+            
+        }
     }
 
     /**
