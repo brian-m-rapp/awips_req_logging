@@ -129,7 +129,7 @@ public class RequestLogger implements ILocalizationPathObserver {
      */
     private static String REQ_LOG_FILENAME = null;
 
-    private static final int QUEUE_SIZE = 50;
+    private static final int QUEUE_SIZE = 500;
 
     /**
      * Queue for logging requests
@@ -221,10 +221,11 @@ public class RequestLogger implements ILocalizationPathObserver {
 
     /**
      * Persistent thread for processing requests for logging.  The thread is 
-     * only started if request logging is enabled.  It blocks on empty queue
+     * only started if request logging is enabled.  It blocks on empty queue.
      */
     class LoggerThread extends Thread {
         public LoggerThread() {
+            super("LoggerThread");
             setDaemon(true);
         }
 
@@ -463,6 +464,8 @@ public class RequestLogger implements ILocalizationPathObserver {
 
         if (!requestQ.offer(new RequestWrapper(wsid, request))) {
             requestLog.warn(String.format("requestQ full (%d)", requestQ.size()));
+        } else {
+            requestLog.info("Request queue size: "+requestQ.size());
         }
     }
 

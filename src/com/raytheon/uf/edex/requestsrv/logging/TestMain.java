@@ -42,7 +42,10 @@ public class TestMain {
         long startTime;
         long endTime;
         startTime = System.currentTimeMillis();
-        reqLogger.logRequest(wsid, requests[0]);
+        for (int i = 0; i < 500; i++) {
+            reqLogger.logRequest(wsid, requests[0]);
+        }
+
         endTime = System.currentTimeMillis();
         System.out.format("Execution time %d ms\n", endTime-startTime);
 
