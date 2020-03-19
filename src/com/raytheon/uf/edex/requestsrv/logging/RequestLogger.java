@@ -20,7 +20,7 @@ import java.io.InputStream;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.Iterator;
-import java.util.Map; 
+import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
@@ -29,45 +29,45 @@ import java.util.Collections;
 
 /**
  * Class for logging request ({@link IServerRequest}) details.  Implemented using
- * the singleton design pattern.  Requests are logged to edex-request-thriftSrv 
+ * the singleton design pattern.  Requests are logged to edex-request-thriftSrv
  * as JSON-encoded strings to allow easy parsing by external applications.  Request
- * logging is configured as a white list: only classes explicitly identified and 
- * enabled are logged.  By default, all request attributes are logged for enabled 
- * classes.  Requests are instances of {@link IServerRequest}.  Request logging is 
- * configured in common_static:requestsrv/logging/request_logging.xml.  Supports 
- * localization override so a site or region can override the base default 
+ * logging is configured as a white list: only classes explicitly identified and
+ * enabled are logged.  By default, all request attributes are logged for enabled
+ * classes.  Requests are instances of {@link IServerRequest}.  Request logging is
+ * configured in common_static:requestsrv/logging/request_logging.xml.  Supports
+ * localization override so a site or region can override the base default
  * configuration.
  * <p>
  * Request logging can be disabled in one of two ways:
  * <ol><li>delete request_logging.xml from all configuration locations, or</li>
- * <li>set loggingEnabled="false" in the <code>requests</code> element of the most 
+ * <li>set loggingEnabled="false" in the <code>requests</code> element of the most
  * specific instance of request_logging.xml</li></ol>
  * <p>
- * A special "discovery mode" exists for developing configuration files.  In 
- * discovery mode, all requests are logged unless explicitly disabled.  It is 
- * enabled by setting the XML attribute <code>discoveryMode="true"</code> in the 
- * requests tag.  Then run requestsrv for some period of time while exercising 
- * CAVE, GFE, etc.  Review the edex-request-thriftsrv log to identify the desired 
- * request classes and define them as enabled in a config file.  To assist with 
- * this process, you can explicitly disable classes you aren't interested in 
- * logging by setting <code>enabled="false"</code>.  When done with discovery, 
- * either remove the discoveryMode attribute from the requests tag, or set it to 
+ * A special "discovery mode" exists for developing configuration files.  In
+ * discovery mode, all requests are logged unless explicitly disabled.  It is
+ * enabled by setting the XML attribute <code>discoveryMode="true"</code> in the
+ * requests tag.  Then run requestsrv for some period of time while exercising
+ * CAVE, GFE, etc.  Review the edex-request-thriftsrv log to identify the desired
+ * request classes and define them as enabled in a config file.  To assist with
+ * this process, you can explicitly disable classes you aren't interested in
+ * logging by setting <code>enabled="false"</code>.  When done with discovery,
+ * either remove the discoveryMode attribute from the requests tag, or set it to
  * "false".
  * <p>
  * Request filtering uses the value for a class from the most specific configuration
  * file.  If the base file has a class enabled, you can disable it at the site level
  * by defining a request element for it in the site-level file and set enabled="false".
  * <p>
- * Two types of attribute filtering are supported: enable/disable, and truncation 
- * of String attributes to a maximum length.  By default, all attributes are logged.  
- * A maximum default attribute String length is hardcoded as 
- * {@link #DEFAULT_MAX_STRING_LENGTH}.  This maximum can be overridden by defining 
- * the XML attribute <code>maxFieldStringLength</code> in the <code>requests</code> 
+ * Two types of attribute filtering are supported: enable/disable, and truncation
+ * of String attributes to a maximum length.  By default, all attributes are logged.
+ * A maximum default attribute String length is hardcoded as
+ * {@link #DEFAULT_MAX_STRING_LENGTH}.  This maximum can be overridden by defining
+ * the XML attribute <code>maxFieldStringLength</code> in the <code>requests</code>
  * tag.  Attribute configuration is additive, with the most specific configuration
  * taking effect in the event of conflicts.
  * <p>
  * To disable logging of a request class, either remove it from all configuration
- * files, or use a <code>request</code> element with a <code>class</code> attribute 
+ * files, or use a <code>request</code> element with a <code>class</code> attribute
  * naming the class and set the <code>enabled</code> attribute to false.  For example:
  * <pre>{@code<request class="com.raytheon.uf.common.localization.msgs.UtilityRequestMessage" enabled="false"/>}</pre>
  * <p>
@@ -80,10 +80,10 @@ import java.util.Collections;
             <attribute name="lang" enabled="false"/>
         </attributes>
     </request>}</pre>
- * 
+ *
  * Sample configuration file:
  * <pre>{@code
-<?xml version='1.0' encoding='UTF-8'?> 
+<?xml version='1.0' encoding='UTF-8'?>
 <requests maxFieldStringLength="150">
     <request class="com.raytheon.uf.common.dataquery.requests.DbQueryRequest"/>
     <request class="com.raytheon.uf.common.dataquery.requests.DbQueryRequestSet"/>
@@ -92,7 +92,7 @@ import java.util.Collections;
 </requests>
 
 }</pre>
- * 
+ *
  * @author Brian Rapp
  *
  * <pre>
@@ -108,10 +108,10 @@ public class RequestLogger implements ILocalizationPathObserver {
     /**
      * Instance of thrift server request logging (edex-request-thriftsrv-<date>).
      */
-    private static final IUFStatusHandler requestLog = 
+    private static final IUFStatusHandler requestLog =
             UFStatus.getNamedHandler("ThriftSrvRequestLogger");
 
-    private static final IUFStatusHandler statusHandler = 
+    private static final IUFStatusHandler statusHandler =
             UFStatus.getHandler(RequestLogger.class);
 
     /**
@@ -122,12 +122,8 @@ public class RequestLogger implements ILocalizationPathObserver {
     /**
      * Subdirectory for request configuration
      */
-    private static final String REQ_LOG_CONFIG_DIR = LocalizationUtil.join("request", "logging");
-
-    /**
-     * Name of request configuration file.  Determined by EDEX run mode.
-     */
-    private static String REQ_LOG_FILENAME = null;
+    private static final String REQ_LOG_CONFIG_DIR =
+            LocalizationUtil.join("request", "logging");
 
     private static final int QUEUE_SIZE = 500;
 
@@ -170,11 +166,12 @@ public class RequestLogger implements ILocalizationPathObserver {
     /**
      * If true, request logging is enabled; if false, request details are not logged.
      */
-    private boolean loggingEnabled = false;  // If there is no configuration file, request details will not be logged
+    private boolean loggingEnabled = false; // If there is no configuration file, 
+                                            // request details will not be logged
 
     /**
-     * If true, log all request classes, otherwise use the configuration files to determine
-     * which request classes to log.
+     * If true, log all request classes, otherwise use the configuration files to
+     * determine which request classes to log.
      */
     private boolean inDiscoveryMode = false;
 
@@ -194,38 +191,12 @@ public class RequestLogger implements ILocalizationPathObserver {
     private static volatile boolean threadRunning = false;
 
     /**
-     * Private constructor for initializing the RequestLogger singleton instance.  Instantiates
-     * the JAXB manager, reads the configuration files, sets up a localization path observer, 
-     * initializes the queue, and starts the processor thread.
-     */
-    private RequestLogger() throws ExceptionInInitializerError {
-        if (edexRunMode == null) { // This will happen if edex.run.mode is not defined on the command
-            return;                // line, which should never happen since it's required by EDEX. 
-        }
-
-        /*
-         * Config file name is determined by which instance of EDEX this is.
-         */
-        REQ_LOG_FILENAME = LocalizationUtil.join(REQ_LOG_CONFIG_DIR, edexRunMode+".xml");
-
-        try {
-            jaxbManager = new SingleTypeJAXBManager<>(RawRequestFilters.class);
-        } catch (Exception e) {
-            requestLog.error("Error creating context for RequestLogger", e);
-            throw new ExceptionInInitializerError("Error creating context for RequestLogger");
-        }
-
-        readConfigs();
-        PathManagerFactory.getPathManager().addLocalizationPathObserver(REQ_LOG_CONFIG_DIR, this);
-    }
-
-    /**
-     * Persistent thread for processing requests for logging.  The thread is 
+     * Persistent thread for processing requests for logging.  The thread is
      * only started if request logging is enabled.  It blocks on empty queue.
      */
     class LoggerThread extends Thread {
         public LoggerThread() {
-            super("LoggerThread");
+            super("RequestLoggerThread");
             setDaemon(true);
         }
 
@@ -246,15 +217,17 @@ public class RequestLogger implements ILocalizationPathObserver {
                 synchronized (filterMap) {
                     if ((filterMap.containsKey(clsStr) && filterMap.get(clsStr).isEnabled())
                        || (inDiscoveryMode && !filterMap.containsKey(clsStr))) {
-    
+
                         try {
                             Map<String, Object> requestWrapperMap = mapper.readValue(
-                                    mapper.writeValueAsString(wrapper), 
+                                    mapper.writeValueAsString(wrapper),
                                     new TypeReference<Map<String, Object>>(){}
                             );
                             applyFilters(requestWrapperMap);
-    
-                            requestLog.info(String.format("Request::: %s", truncateJsonMsg(mapper.writeValueAsString(requestWrapperMap))));
+
+                            requestLog.info(String.format("Request::: %s", 
+                                    truncateJsonMsg(
+                                            mapper.writeValueAsString(requestWrapperMap))));
                         } catch (Exception e) {
                             statusHandler.error("Error logging request", e);
                         }
@@ -271,10 +244,9 @@ public class RequestLogger implements ILocalizationPathObserver {
         @SuppressWarnings("unchecked")
         private void applyFilters(Map<String, Object> requestWrapperMap) {
             Map<String, Object> requestMap = (Map<String, Object>) requestWrapperMap.get("request");
-            String reqClass = (String) requestWrapperMap.get("reqClass");
 
-            if (filterMap.containsKey(reqClass)) {
-                RequestFilter reqFilter = filterMap.get(requestWrapperMap.get("reqClass"));
+            RequestFilter reqFilter = filterMap.get(requestWrapperMap.get("reqClass"));
+            if (reqFilter != null) {
                 Map<String, ClassAttribute> attrFilters = reqFilter.getAttributeMap();
                 Iterator<Map.Entry<String, Object>> iterator = requestMap.entrySet().iterator();
 
@@ -331,13 +303,16 @@ public class RequestLogger implements ILocalizationPathObserver {
                             List<String> strArrayList = (ArrayList<String>) objs;
 
                             for (int i = 0; i < strArrayList.size(); i++) {
-                                if ((maxStringLength > 0) && (strArrayList.get(i).length() > maxStringLength)) {
-                                    strArrayList.set(i, strArrayList.get(i).substring(0, maxStringLength) + "...");
+                                if ((maxStringLength > 0) &&
+                                    (strArrayList.get(i).length() > maxStringLength)) {
+                                    strArrayList.set(i, strArrayList.get(i)
+                                            .substring(0, maxStringLength) + "...");
                                 }
                             }
                         } else if (objs.get(0) instanceof Map) {
                             @SuppressWarnings("unchecked")
-                            List<Map<String, Object>> mapArrayList = (ArrayList<Map<String, Object>>) obj;
+                            List<Map<String, Object>> mapArrayList =
+                                    (ArrayList<Map<String, Object>>) obj;
 
                             for (int i = 0; i < mapArrayList.size(); i++) {
                                 truncateLongStrings(mapArrayList.get(i));
@@ -362,16 +337,9 @@ public class RequestLogger implements ILocalizationPathObserver {
     }
 
     /**
-     * @return RequestLogger instance.
-     */
-    public static RequestLogger getInstance() {
-        return instance;
-    }
-
-    /**
      * Class for stringifying request objects to JSON.
      * Contains 3 attributes: workstation ID (wsid) as a string, the
-     * request class as a string, and the raw deserialized request. 
+     * request class as a string, and the raw deserialized request.
      */
     @JsonPropertyOrder({"wsid", "reqClass", "request"})
     @SuppressWarnings("unused")
@@ -400,13 +368,47 @@ public class RequestLogger implements ILocalizationPathObserver {
     }
 
     /**
+     * Private constructor for initializing the RequestLogger singleton instance.
+     * Instantiates the JAXB manager, reads the configuration files, sets up a
+     * localization path observer, initializes the queue, and starts the processor
+     * thread.
+     */
+    private RequestLogger() throws ExceptionInInitializerError {
+        if (edexRunMode == null) {  // This will happen if edex.run.mode is not defined
+            return;                 // on the command line, which should never happen
+                                    //since it's required by EDEX.
+        }
+
+        try {
+            jaxbManager = new SingleTypeJAXBManager<>(RawRequestFilters.class);
+        } catch (Exception e) {
+            requestLog.error("Error creating context for RequestLogger", e);
+            throw new ExceptionInInitializerError("Error creating context for RequestLogger");
+        }
+
+        readConfigs();
+        PathManagerFactory.getPathManager().addLocalizationPathObserver(REQ_LOG_CONFIG_DIR, this);
+    }
+
+    /**
+     * @return RequestLogger instance.
+     */
+    public static RequestLogger getInstance() {
+        return instance;
+    }
+
+    /**
      * Reads all configuration files.  Support localization override.
      */
     private void readConfigs() {
+        String REQ_LOG_FILENAME =
+                LocalizationUtil.join(REQ_LOG_CONFIG_DIR, edexRunMode+".xml");
         IPathManager pathMgr = PathManagerFactory.getPathManager();
-        LocalizationContext[] searchOrder = pathMgr.getLocalSearchHierarchy(LocalizationType.COMMON_STATIC);
+        LocalizationContext[] searchOrder =
+                pathMgr.getLocalSearchHierarchy(LocalizationType.COMMON_STATIC);
+        List<LocalizationContext> reverseOrder =
+                Arrays.asList(Arrays.copyOf(searchOrder, searchOrder.length));
 
-        List<LocalizationContext> reverseOrder = Arrays.asList(Arrays.copyOf(searchOrder, searchOrder.length));
         Collections.reverse(reverseOrder);
         for (LocalizationContext ctx : reverseOrder) {
             ILocalizationFile lf = pathMgr.getLocalizationFile(ctx, REQ_LOG_FILENAME);
@@ -417,14 +419,14 @@ public class RequestLogger implements ILocalizationPathObserver {
                         if (filterMap.containsKey(req.getClassName())) {
                             // This is an update to an existing filter
                             // Put each attribute from the raw filter into the request filter
-                            Map<String, ClassAttribute> attrs = 
+                            Map<String, ClassAttribute> attrs =
                                     filterMap.get(req.getClassName()).getAttributeMap();
                             for (ClassAttribute attr : req.getAttributes()) {
                                 attrs.put(attr.getName(), attr);
                             }
                         }
 
-                    filterMap.put(req.getClassName(), new RequestFilter(req));
+                        filterMap.put(req.getClassName(), new RequestFilter(req));
                     }
 
                     maxStringLength = rawFilters.getMaxFieldStringLength();
@@ -449,7 +451,7 @@ public class RequestLogger implements ILocalizationPathObserver {
     }
 
     /**
-     * Logs request to the request log after applying configured filters. 
+     * Logs request to the request log after applying configured filters.
      * Request filtering and logging is done in a separate thread to allow
      * request processing to continue unimpeded by logging.
      * @param wsid
