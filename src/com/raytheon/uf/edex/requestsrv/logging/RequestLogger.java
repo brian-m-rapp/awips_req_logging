@@ -373,9 +373,8 @@ public class RequestLogger implements ILocalizationPathObserver {
 
     /**
      * Private constructor for initializing the RequestLogger singleton
-     * instance. Instantiates the JAXB manager, reads the configuration files,
-     * sets up a localization path observer, initializes the queue, and starts
-     * the processor thread.
+     * instance. Reads the configuration files, sets up a localization path
+     * observer, initializes the queue, and starts the processor thread.
      */
     private RequestLogger() {
         if (edexRunMode == null) {
